@@ -261,7 +261,7 @@ return (
                   fill
                   sizes="(max-width: 640px) 160px, 224px"
                   priority
-                  className="rounded-full object-cover w-auto h-auto" 
+                  className="rounded-full object-cover object-top w-auto h-auto" 
                 />
               </div>
               <div className="text-center">
@@ -418,24 +418,19 @@ return (
             <h3 className="font-bold text-lg mb-4">{translate('contact', language)}</h3>
             <div className="flex items-center space-x-2 mb-2">
               <Mail className="w-5 h-5" />
-              <p>hjpw96@naver.com</p>
+              <p>admin@inno-curve.com</p>
             </div>
             <div className="flex items-center space-x-2">
               <Phone className="w-5 h-5" />
-              <p>010-9037-4458</p>
+              <p>010-1234-5678</p>
             </div>
           </div>
           <div>
             <h3 className="font-bold text-lg mb-4">{translate('affiliation', language)}</h3>
             <div className="space-y-2">
-              <Link 
-                href="https://www.daecheongse.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="block hover:text-blue-400 transition duration-300"
-              >
+              <p className="block text-white">
                 {translate('affiliations_worldyouth', language)}
-              </Link>
+              </p>
               <p>{translate('affiliations_innocurve', language)}</p>
             </div>
           </div>
@@ -445,12 +440,8 @@ return (
               <Link href="https://www.instagram.com/cpmw_mk/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-blue-400 transition duration-300">
                 <span>Instagram</span>
               </Link>
-              <Link href="https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&mra=bjky&x_csa=%7B%22fromUi%22%3A%22kb%22%7D&pkid=1&os=18661100&qvt=0&query=%EC%A0%95%EB%AF%BC%EA%B8%B0" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-blue-400 transition duration-300">
-                <span>Naver</span>
-              </Link>
-              <Link href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-blue-400 transition duration-300">
-                <span>Facebook</span>
-              </Link>
+              <p className="text-white">Naver</p>
+              <p className="text-white">Facebook</p>
             </div>
           </div>
         </div>

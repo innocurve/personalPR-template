@@ -11,10 +11,10 @@ import ChatMessage from '../components/ChatBot/ChatMessage'
 import Navigation from '../components/Navigation'
 
 const initialMessages = {
-  ko: "안녕하세요! 저는 정민기's Clone입니다. 무엇을 도와드릴까요?",
-  en: "Hello! I'm Minki Jeong's Clone. How can I help you?",
-  ja: "こんにちは！鄭玟基のクローンです。どのようにお手伝いできますか？",
-  zh: "你好！我是郑玟基的克隆。我能为您做些什么？"
+  ko: "안녕하세요! 저는 정이노의 AI 클론입니다. 무엇을 도와드릴까요?",
+  en: "Hello! I'm Jeong Inno's Clone. How can I help you?",
+  ja: "こんにちは！イノのクローンです。どのようにお手伝いできますか？",
+  zh: "你好！我是Jeong Inno的克隆。我能为您做些什么？"
 };
 
 export default function ChatPage() {
@@ -236,7 +236,7 @@ export default function ChatPage() {
                 alt={translate('name', language)}
                 fill
                 sizes="(max-width: 768px) 64px, 96px"
-                className="object-cover"
+                className="rounded-full object-cover object-top w-auto h-auto" 
                 priority
               />
             </div>
