@@ -99,6 +99,16 @@ const [posts, setPosts] = useState<PostData[]>([
       zh: 'InnoCurve营销',
     },
     image: '/postimage/id4image.png',
+    images: [
+      '/postimage/id4image2.png',
+      '/postimage/id4image3.png',
+      '/postimage/id4image4.png',
+      '/postimage/id4image5.png',
+      '/postimage/id4image6.png',
+      '/postimage/id4image7.png',
+      '/postimage/id4image8.png',
+      '/postimage/id4image9.png'
+    ],
     description: {
       ko: 'AI를 활용한 홈페이지, 이미지, 영상 등 다양한 디지털 콘텐츠 제작을 통해 비용은 효율적으로 절감하고, 최상의 퀄리티로 효과적인 홍보를 지원합니다.',
       en: 'We support effective promotion with top quality while efficiently reducing costs through the production of various digital content such as AI-powered websites, images, and videos.',
