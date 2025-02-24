@@ -17,10 +17,10 @@ export default function GreetingVideo() {
   const [translatedDescription, setTranslatedDescription] = useState('')
 
   const videoSources = {
-    ko: "/greetingvideo/greeting_ko.mp4",
-    en: "/greetingvideo/greeting_en.mp4",
-    ja: "/greetingvideo/greeting_ja.mp4",
-    zh: "/greetingvideo/greeting_zh.mp4"
+    ko: "/greetingvideo/greetingko.mp4",
+    en: "/greetingvideo/greetingen.mp4",
+    ja: "/greetingvideo/greetingja.mp4",
+    zh: "/greetingvideo/greetingzh.mp4"
   }
 
   const togglePlay = () => {
