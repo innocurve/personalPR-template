@@ -437,7 +437,7 @@ return (
           <div>
             <h3 className="font-bold text-lg mb-4">{translate('socialMedia', language)}</h3>
             <div className="space-y-2">
-              <Link href="https://www.instagram.com/cpmw_mk/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-blue-400 transition duration-300">
+              <Link href="https://www.instagram.com/inno_curve/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-blue-400 transition duration-300">
                 <span>Instagram</span>
               </Link>
               <p className="text-white">Naver</p>
