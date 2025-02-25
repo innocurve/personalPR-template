@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import * as deepl from 'deepl-node'
 
-const translator = new deepl.Translator(process.env.DEEPL_API_KEY!)
+// DeepL API 직접 호출을 위한 타입 정의
+type TargetLanguageCode = 'EN-US' | 'JA' | 'ZH' | 'KO';
 
-const languageMap: { [key: string]: deepl.TargetLanguageCode } = {
-  en: 'en-US',
-  ja: 'ja',
-  zh: 'zh',
-  ko: 'ko'
+const languageMap: { [key: string]: TargetLanguageCode } = {
+  en: 'EN-US',
+  ja: 'JA',
+  zh: 'ZH',
+  ko: 'KO'
 }
 
 export async function POST(req: Request) {
@@ -24,20 +24,27 @@ export async function POST(req: Request) {
       throw new Error(`Unsupported language: ${targetLanguage}`)
     }
 
-    const result = await translator.translateText(
-      text,
-      null,
-      deeplTargetLang,
-      {
-        preserveFormatting: true,
-        formality: 'more'
-      }
-    )
+    // DeepL API 직접 호출
+    const response = await fetch('https://api-free.deepl.com/v2/translate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `DeepL-Auth-Key ${process.env.DEEPL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: [text],
+        target_lang: deeplTargetLang,
+        formality: 'more',
+        preserve_formatting: true
+      })
+    });
 
-    // result가 배열인지 단일 객체인지 확인
-    const translatedText = Array.isArray(result) 
-      ? result[0].text 
-      : result.text
+    if (!response.ok) {
+      throw new Error(`DeepL API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const translatedText = result.translations[0].text;
 
     return NextResponse.json({ translatedText })
   } catch (error) {
