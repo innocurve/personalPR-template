@@ -16,10 +16,11 @@ import MyValues from './components/MyValues'
 import History from './components/Career'
 import FadeInSection from './components/FadeInSection'
 import { useState, useEffect } from 'react';
-import { Menu, X, Mail, Phone } from 'lucide-react'
+import { Menu, X, Mail, Phone, Sun, Moon } from 'lucide-react'
 import ContactOptions from './components/ContactOptions'
 import type { PostData } from './types/post'
 import ShareButton from './components/ShareButton'
+import { useDarkMode } from './hooks/useDarkMode'
 
 export default function Home() {
 const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -126,6 +127,7 @@ const [posts, setPosts] = useState<PostData[]>([
 ]);
 
 const router = useRouter();
+const { isDarkMode, toggleDarkMode } = useDarkMode()
 
 // 로컬스토리지 초기화 함수
 const resetLocalStorage = () => {
@@ -188,7 +190,7 @@ const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
 };
 
 return (
-  <div className="font-sans min-h-screen flex flex-col">
+  <div className="font-sans min-h-screen flex flex-col bg-white dark:bg-gray-900">
     <style jsx global>{`
       html {
         scroll-behavior: smooth;
@@ -209,7 +211,7 @@ return (
         }
       }
     `}</style>
-    <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+    <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-screen-xl mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center">
@@ -227,15 +229,26 @@ return (
           </div>
           <div className="flex items-center space-x-4">
             <nav className="hidden md:flex space-x-6">
-              <Link href="#profile" onClick={(e) => handleScrollTo(e, 'profile')} className="font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300">{translate('profile', language)}</Link>
-              <Link href="#smart-options" onClick={(e) => handleScrollTo(e, 'smart-options')} className="font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300">{translate('smartOptions', language)}</Link>
-              <Link href="#history" onClick={(e) => handleScrollTo(e, 'history')} className="font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300">{translate('history', language)}</Link>
-              <Link href="#values" onClick={(e) => handleScrollTo(e, 'values')} className="font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300">{translate('values', language)}</Link>
-              <Link href="#community" onClick={(e) => handleScrollTo(e, 'community')} className="font-mono tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300">{translate('activities', language)}</Link>
+              <Link href="#profile" onClick={(e) => handleScrollTo(e, 'profile')} className="nav-link">{translate('profile', language)}</Link>
+              <Link href="#smart-options" onClick={(e) => handleScrollTo(e, 'smart-options')} className="nav-link">{translate('smartOptions', language)}</Link>
+              <Link href="#history" onClick={(e) => handleScrollTo(e, 'history')} className="nav-link">{translate('history', language)}</Link>
+              <Link href="#values" onClick={(e) => handleScrollTo(e, 'values')} className="nav-link">{translate('values', language)}</Link>
+              <Link href="#community" onClick={(e) => handleScrollTo(e, 'community')} className="nav-link">{translate('activities', language)}</Link>
             </nav>
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? (
+                <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              )}
+            </button>
             <LanguageToggle />
             <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
+              {isMenuOpen ? <X className="w-6 h-6 text-gray-600 dark:text-gray-300" /> : <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />}
             </button>
           </div>
         </div>
@@ -263,7 +276,7 @@ return (
     <main className="w-full max-w-4xl mx-auto p-5 pt-24 flex-grow overflow-x-hidden">
       <div className="w-full overflow-x-hidden">
         <FadeInSection>
-          <section id="profile" className="mb-8 bg-white rounded-xl p-6 sm:p-10 shadow-lg overflow-hidden relative">
+          <section id="profile" className="mb-8 bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-10 shadow-lg overflow-hidden relative">
             <div className="flex flex-col items-center space-y-6">
               <div className="w-40 h-40 sm:w-56 sm:h-56 relative">
                 <Image 
@@ -276,8 +289,8 @@ return (
                 />
               </div>
               <div className="text-center">
-                <h2 className="text-4xl sm:text-5xl font-bold mb-3">{translate('name', language)}</h2>
-                <p className="text-2xl sm:text-3xl text-gray-600 mb-6">
+                <h2 className="text-4xl sm:text-5xl font-bold mb-3 text-gray-900 dark:text-white">{translate('name', language)}</h2>
+                <p className="text-2xl sm:text-3xl text-gray-600 dark:text-gray-300 mb-6">
                   {translate('title', language).split('|').map((part, index) => (
                     <span key={index} className="sm:inline block">
                       {index > 0 && <span className="sm:inline hidden"> · </span>}
@@ -322,7 +335,7 @@ return (
 
       <div className="w-full overflow-x-hidden">
         <FadeInSection>
-          <section id="history" className="mb-8 bg-white rounded-xl p-8 shadow-lg overflow-hidden relative">
+          <section id="history" className="mb-8 bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg overflow-hidden relative">
             <History />
           </section>
         </FadeInSection>
@@ -374,9 +387,9 @@ return (
                   >
                     <div
                       onClick={() => handlePostClick(post.id)}
-                      className="bg-white rounded-lg shadow-md cursor-pointer transform transition-all duration-300 hover:scale-105 h-[340px] flex flex-col"
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/30 cursor-pointer transform transition-all duration-300 hover:scale-105 h-[340px] flex flex-col border border-gray-100 dark:border-gray-700"
                     >
-                      <div className="relative h-[200px] rounded-t-lg overflow-hidden bg-gray-50 flex items-center justify-center">
+                      <div className="relative h-[200px] rounded-t-lg overflow-hidden bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
                         <Image
                           src={post.image}
                           alt={post.title[language]}
@@ -386,7 +399,7 @@ return (
                         />
                       </div>
                       <div className="p-4 flex flex-col flex-1">
-                        <h3 className="text-lg font-semibold mb-2 overflow-hidden whitespace-pre-line"
+                        <h3 className="text-lg font-semibold mb-2 overflow-hidden whitespace-pre-line text-gray-900 dark:text-white"
                             style={{
                               display: '-webkit-box',
                               WebkitBoxOrient: 'vertical',
@@ -395,7 +408,7 @@ return (
                               lineHeight: '1.5rem'
                             }}
                         >{post.title[language]}</h3>
-                        <p className="text-gray-600 text-sm mb-3 overflow-hidden"
+                        <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 overflow-hidden"
                            style={{
                              display: '-webkit-box',
                              WebkitBoxOrient: 'vertical',
@@ -406,7 +419,7 @@ return (
                         >{post.description[language]}</p>
                         <div className="flex flex-wrap gap-2 mt-auto">
                           {post.tags[language].map((tag, index) => (
-                            <span key={index} className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                            <span key={index} className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">
                               {tag}
                             </span>
                           ))}
@@ -424,7 +437,7 @@ return (
 
     <ShareButton language={language} />
 
-    <footer className="bg-gray-800 text-white py-12 mt-12">
+    <footer className="bg-gray-800 dark:bg-gray-800 text-white py-12 mt-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -470,9 +483,9 @@ return (
 function ProfileItem({ label, value, className = '' }: { label: string, value: string[], className?: string }) {
   return (
     <div className={`mb-2 ${className}`}>
-      {label && <span className="font-bold text-blue-600 block mb-1 text-xl">{label}</span>}
+      {label && <span className="font-bold text-blue-600 dark:text-blue-400 block mb-1 text-xl text-label">{label}</span>}
       {(value ?? []).map((item, index) => (
-        <p key={index} className="text-lg text-black">{item}</p>
+        <p key={index} className="text-lg text-gray-700 dark:text-gray-300 text-content">{item}</p>
       ))}
     </div>
   )

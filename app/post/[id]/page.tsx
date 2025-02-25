@@ -14,6 +14,7 @@ import { Navigation as SwiperNavigation, Pagination, Autoplay } from 'swiper/mod
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
+import { storage } from '@/app/utils/storage'
 
 export default function PostDetail() {
   const params = useParams()
@@ -23,10 +24,17 @@ export default function PostDetail() {
 
   useEffect(() => {
     const fetchPost = () => {
-      const posts = JSON.parse(localStorage.getItem('posts') || '[]')
-      const foundPost = posts.find((p: PostData) => p.id === Number(params.id))
-      if (foundPost) {
-        setPost(foundPost)
+      const postsJson = storage.get('posts')
+      if (!postsJson) return;
+      
+      try {
+        const posts = JSON.parse(postsJson)
+        const foundPost = posts.find((p: PostData) => p.id === Number(params.id))
+        if (foundPost) {
+          setPost(foundPost)
+        }
+      } catch (error) {
+        console.error('포스트 데이터 파싱 오류:', error)
       }
     }
 
@@ -34,21 +42,15 @@ export default function PostDetail() {
   }, [params.id])
 
   if (!post) {
-    return <div>Loading...</div>
+    return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 text-gray-900 dark:text-white">Loading...</div>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <Navigation language={language} />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navigation language={language} />
 
       <main className="max-w-4xl mx-auto p-5 pt-24">
-        <article className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <article className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="relative h-[200px] sm:h-[300px] md:h-[400px] w-full">
             {post.images ? (
               <Swiper
@@ -72,11 +74,11 @@ export default function PostDetail() {
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 900px, 1200px"
                     quality={90}
-                    className="object-contain bg-gray-50"
+                    className="object-contain bg-gray-50 dark:bg-gray-700"
                     priority
                   />
                 </SwiperSlide>
-                {post.images.map((image, index) => (
+                {post.images && post.images.map((image, index) => (
                   <SwiperSlide key={index}>
                     <Image 
                       src={image} 
@@ -84,7 +86,7 @@ export default function PostDetail() {
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 900px, 1200px"
                       quality={90}
-                      className="object-contain bg-gray-50"
+                      className="object-contain bg-gray-50 dark:bg-gray-700"
                       loading="lazy"
                     />
                   </SwiperSlide>
@@ -97,24 +99,24 @@ export default function PostDetail() {
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 900px, 1200px"
                 quality={90}
-                className="object-contain bg-gray-50"
+                className="object-contain bg-gray-50 dark:bg-gray-700"
                 priority
               />
             )}
           </div>
           <div className="p-4 sm:p-6 md:p-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">
               {post.title[language]}
             </h1>
-            <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none">
-              <p className="text-gray-600 leading-relaxed">
+            <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none dark:prose-invert">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 {post.description[language]}
               </p>
             </div>
             
             {post.gallery && (
               <div className="mt-8 sm:mt-12">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">
                   {translate('gallery', language)}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -143,10 +145,10 @@ export default function PostDetail() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-700">
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm sm:text-base"
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm sm:text-base"
                 onClick={() => router.push('/#community')}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">

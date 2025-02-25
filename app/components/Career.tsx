@@ -119,7 +119,7 @@ export default function Career() {
               {currentHistory[year]?.map((item: string, index: number) => (
                 <li 
                   key={index} 
-                  className="text-gray-700 hover:text-gray-900 transition-colors duration-200"
+                  className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
                   role="listitem"
                 >
                   {item}

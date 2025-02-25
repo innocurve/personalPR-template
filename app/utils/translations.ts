@@ -41,9 +41,9 @@ export const translations: TranslationDictionary = {
   },
   name: {
     ko: '정이노',
-    en: 'Jeong Inno',
+    en: 'Jeong Ino',
     ja: 'イノ',
-    zh: 'Jeong Inno',
+    zh: 'Jeong Ino',
   },
   title: {
     ko: '이노카드 템플릿 · 기업인',

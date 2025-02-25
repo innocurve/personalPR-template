@@ -13,10 +13,9 @@ const CACHE_EXPIRY = 60 * 60 * 1000
 
 interface ChatMessageProps {
   message: Message
-  isDarkMode?: boolean
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
@@ -88,7 +87,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
       }
 
       setIsLoading(true)
-      const toastId = toast.loading('목소리 가다듬는 중...')
+      const toastId = toast.loading('목소리 가다듬는 중...', {
+        style: {
+          color: 'var(--foreground)',
+          background: 'var(--background)',
+          border: '1px solid var(--border)'
+        }
+      })
 
       // 캐시 확인
       const cachedAudio = getAudioFromCache(message.content)
@@ -151,13 +156,25 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
         } catch (error) {
           console.error('오디오 재생 오류:', error)
           toast.dismiss(toastId)
-          toast.error('오디오 재생에 실패했습니다')
+          toast.error('오디오 재생에 실패했습니다', {
+            style: {
+              color: 'var(--foreground)',
+              background: 'var(--background)',
+              border: '1px solid var(--border)'
+            }
+          })
         }
       }
 
     } catch (error) {
       console.error('TTS 재생 오류:', error)
-      toast.error(error instanceof Error ? error.message : 'TTS 재생 중 오류가 발생했습니다')
+      toast.error(error instanceof Error ? error.message : 'TTS 재생 중 오류가 발생했습니다', {
+        style: {
+          color: 'var(--foreground)',
+          background: 'var(--background)',
+          border: '1px solid var(--border)'
+        }
+      })
       setIsPlaying(false)
     } finally {
       setIsLoading(false)
@@ -172,9 +189,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
         className={`max-w-[80%] rounded-lg px-4 py-2 ${
           isUser
             ? 'bg-blue-500 text-white'
-            : isDarkMode
-            ? 'bg-gray-700 text-white'
-            : 'bg-gray-100 text-gray-900'
+            : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
         }`}
       >
         <div className="flex items-start gap-2">
@@ -183,9 +198,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
             <button
               onClick={playTTS}
               disabled={isLoading}
-              className={`ml-2 p-1 rounded-full hover:bg-gray-200 transition-colors ${
-                isDarkMode ? 'hover:bg-gray-600' : ''
-              } ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+              className={`ml-2 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
               title={isPlaying ? '음성 중지' : '음성으로 듣기'}
             >
               {isLoading ? (

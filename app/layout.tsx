@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner'
 
@@ -49,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png" />
       </head>
@@ -58,26 +59,29 @@ export default function RootLayout({
       >
         <Toaster 
           position="bottom-center"
-          theme="light"
+          theme="system"
           richColors
           toastOptions={{
             duration: 2000,
             className: 'my-toast',
             style: {
-              background: 'white',
-              border: '1px solid #e2e8f0',
+              background: 'var(--background)',
+              border: '1px solid var(--border)',
               padding: '10px 16px',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               fontSize: '0.9rem',
               fontWeight: '500',
               borderRadius: '12px',
-              marginBottom: '5rem'
+              marginBottom: '5rem',
+              color: 'var(--foreground)'
             }
           }}
         />
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

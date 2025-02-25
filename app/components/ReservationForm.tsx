@@ -61,51 +61,42 @@ export function ReservationForm({ onSubmit, onCancel }: ReservationFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <Script
-        src="https://developers.kakao.com/sdk/js/kakao.js"
-        strategy="lazyOnload"
-        onLoad={() => {
-          if (typeof window !== 'undefined' && window.Kakao && !window.Kakao.isInitialized()) {
-            window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JavaScript_KEY);
-            console.log('Kakao SDK initialized');
-            createChannelButton();
-          }
-        }}
-      />
-      <CardHeader>
-        <CardTitle>예약하기</CardTitle>
-        <CardDescription>카카오톡 채널을 추가한 후 예약을 진행해주세요.</CardDescription>
+    <Card className="w-full reservation-form dark:bg-gray-800 dark:border-gray-700">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-500 dark:to-cyan-400 text-white">
+        <CardTitle>상담 예약</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="bg-yellow-100 p-4 rounded-md mb-4">
-          <p className="text-sm text-yellow-800 mb-2">
-            💡 카카오톡 채널을 추가하시면 예약 확인 및 변경 사항을 실시간으로 받아보실 수 있습니다!
+      <CardContent className="pt-6">
+        <div className="mb-6">
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            상담 예약을 위해 아래 정보를 입력해주세요. 입력하신 정보는 상담 목적으로만 사용됩니다.
           </p>
-          <div ref={kakaoButtonRef}></div>
+          <div ref={kakaoButtonRef} className="flex justify-center mb-4"></div>
         </div>
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">이름</label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">이름</label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">이메일</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">이메일</label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
           <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">전화번호</label>
+            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">전화번호</label>
             <Input
               id="phoneNumber"
               type="tel"
@@ -113,31 +104,34 @@ export function ReservationForm({ onSubmit, onCancel }: ReservationFormProps) {
               onChange={(e) => setPhoneNumber(e.target.value)}
               required
               placeholder="01012345678"
+              className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700">날짜</label>
+            <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">날짜</label>
             <Input
               id="date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
+              className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700">메시지</label>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">메시지</label>
             <Textarea
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
         </form>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onCancel}>취소</Button>
-        <Button type="submit" onClick={handleSubmit}>예약하기</Button>
+        <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">취소</Button>
+        <Button type="submit" onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">예약하기</Button>
       </CardFooter>
     </Card>
   );

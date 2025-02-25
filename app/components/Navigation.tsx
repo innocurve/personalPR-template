@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Sun, Moon } from 'lucide-react'
 import { Language, translate } from '../utils/translations'
 import LanguageToggle from './LanguageToggle'
+import { useTheme } from '../contexts/ThemeContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -16,6 +17,7 @@ interface NavigationProps {
 export default function Navigation({ language }: NavigationProps) {
   const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isDarkMode, toggleDarkMode } = useTheme()
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -40,7 +42,7 @@ export default function Navigation({ language }: NavigationProps) {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+    <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-screen-xl mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center">
@@ -74,9 +76,20 @@ export default function Navigation({ language }: NavigationProps) {
                 {translate('activities', language)}
               </Link>
             </nav>
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? (
+                <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              )}
+            </button>
             <LanguageToggle />
             <button className="md:hidden" onClick={toggleMenu}>
-              {isMenuOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
+              {isMenuOpen ? <X className="w-6 h-6 text-gray-600 dark:text-gray-300" /> : <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />}
             </button>
           </div>
         </div>
@@ -85,7 +98,7 @@ export default function Navigation({ language }: NavigationProps) {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.nav
-            className="md:hidden bg-white fixed top-[72px] left-0 right-0 z-40 shadow-md"
+            className="md:hidden bg-white dark:bg-gray-900 fixed top-[72px] left-0 right-0 z-40 shadow-md"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

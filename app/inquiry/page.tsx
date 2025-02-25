@@ -9,6 +9,7 @@ import Navigation from '../components/Navigation'
 import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { storage } from '../utils/storage'
 
 export default function InquiryPage() {
   const { language } = useLanguage()
@@ -64,27 +65,27 @@ export default function InquiryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white flex flex-col">
       <Navigation language={language} />
 
       <main className="flex-grow pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <Card className="w-full">
+          <Card className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-col items-center">
               <div className="self-start">
-                <Link href="/" className="p-2 rounded-full hover:bg-gray-100 flex items-center gap-2">
+                <Link href="/" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center gap-2">
                   <ArrowLeft className="w-5 h-5" />
-                  <span className="text-gray-600">Back</span>
+                  <span>Back</span>
                 </Link>
               </div>
-              <CardTitle className="text-2xl font-bold mt-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+              <CardTitle className="text-2xl font-bold mt-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">
                 {translate('innoCardInquiry', language)}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {translate('formName', language)}
                   </label>
                   <input
@@ -92,13 +93,15 @@ export default function InquiryPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
+                      bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white 
+                      placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder={translate('formNamePlaceholder', language)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {translate('formPhone', language)}
                   </label>
                   <input
@@ -106,13 +109,15 @@ export default function InquiryPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
+                      bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white 
+                      placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder={translate('formPhonePlaceholder', language)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {translate('formEmail', language)}
                   </label>
                   <input
@@ -120,20 +125,24 @@ export default function InquiryPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
+                      bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white 
+                      placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder={translate('formEmailPlaceholder', language)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {translate('formInquiry', language)}
                   </label>
                   <textarea
                     name="inquiry"
                     value={formData.inquiry}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-md h-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border rounded-md h-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 
+                      bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white 
+                      placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder={translate('formInquiryPlaceholder', language)}
                     required
                   />
@@ -141,7 +150,7 @@ export default function InquiryPage() {
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    className="bg-black text-white px-6"
+                    className="px-6 bg-black dark:bg-blue-600 hover:bg-gray-800 dark:hover:bg-blue-700 text-white"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? '제출 중...' : translate('formSubmit', language)}
@@ -153,15 +162,15 @@ export default function InquiryPage() {
 
           <div className="text-center space-y-4 mt-8 relative">
             <div className="flex items-center justify-center mb-8">
-              <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-              <h3 className="mx-4 text-sm xs:text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent"></div>
+              <h3 className="mx-4 text-sm xs:text-base sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
                 {translate('greetingTitle', language).split('\n').map((line, i) => (
                   <span key={i} className="block whitespace-nowrap">{line}</span>
                 ))}
               </h3>
-              <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+              <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent"></div>
             </div>
-            <p className="text-xs xs:text-sm sm:text-base text-gray-600 leading-relaxed font-bold space-y-4">
+            <p className="text-xs xs:text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed font-bold space-y-4">
               {translate('greetingDescription', language).split('\n\n').map((paragraph, i) => (
                 <span key={i} className="block">
                   {paragraph.split('\n').map((line, j) => (

@@ -21,8 +21,11 @@ export default function SophisticatedButton({ expanded, onClick, language }: Sop
       variant="outline"
       className={`
         mt-4 px-6 py-2 rounded-full transition-all duration-300 ease-in-out
-        ${isHovered ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-600'}
-        border border-gray-300 hover:border-gray-400
+        ${isHovered 
+          ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white' 
+          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+        }
+        border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600
         flex items-center justify-center space-x-2
       `}
       onClick={onClick}

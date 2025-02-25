@@ -41,18 +41,18 @@ export default function AutoSlider({ children, interval = 3000 }: AutoSliderProp
       
       <button
         onClick={prevSlide}
-        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
+        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 rounded-full p-2 shadow-lg transition-all"
         aria-label="이전 슬라이드"
       >
-        <ChevronLeft className="w-6 h-6 text-gray-600" />
+        <ChevronLeft className="w-6 h-6 text-gray-600 dark:text-gray-300" />
       </button>
       
       <button
         onClick={nextSlide}
-        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
+        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 rounded-full p-2 shadow-lg transition-all"
         aria-label="다음 슬라이드"
       >
-        <ChevronRight className="w-6 h-6 text-gray-600" />
+        <ChevronRight className="w-6 h-6 text-gray-600 dark:text-gray-300" />
       </button>
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
@@ -61,7 +61,7 @@ export default function AutoSlider({ children, interval = 3000 }: AutoSliderProp
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`w-2 h-2 rounded-full transition-all ${
-              index === currentIndex ? 'bg-blue-500 w-4' : 'bg-gray-300'
+              index === currentIndex ? 'bg-blue-500 w-4' : 'bg-gray-300 dark:bg-gray-500'
             }`}
             aria-label={`${index + 1}번 슬라이드로 이동`}
           />

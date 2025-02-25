@@ -85,7 +85,7 @@ const ContactOptions: React.FC<ContactOptionsProps> = ({ language }) => {
           onClick={() => handleOptionClick(option.key)}
         >
           <div className="absolute top-6 left-4">
-            <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-gray-600 to-gray-600 group-hover:from-blue-600 group-hover:to-cyan-500 transition-all duration-300">
+            <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-gray-600 to-gray-600 dark:from-gray-100 dark:to-gray-100 group-hover:from-blue-600 group-hover:to-cyan-500 transition-all duration-300">
               {option.title.split('\n').map((line, i) => (
                 <span key={i} className="block">{line}</span>
               ))}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, Moon, Sun, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useLanguage } from '../hooks/useLanguage'
@@ -9,6 +9,9 @@ import { translate } from '../utils/translations'
 import ChatInput, { Message } from '../components/ChatBot/ChatInput'
 import ChatMessage from '../components/ChatBot/ChatMessage'
 import Navigation from '../components/Navigation'
+import { useTheme } from '../contexts/ThemeContext'
+import { useRouter } from 'next/navigation'
+import { storage } from '../utils/storage'
 
 const initialMessages = {
   ko: "안녕하세요! 저는 정이노의 AI 클론입니다. 무엇을 도와드릴까요?",
@@ -18,23 +21,28 @@ const initialMessages = {
 };
 
 export default function ChatPage() {
-  const { language } = useLanguage();
+  const router = useRouter()
+  const { language } = useLanguage()
+  const { isDarkMode } = useTheme()
   const [messages, setMessages] = useState<Message[]>([{
     role: 'assistant',
     content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko
   }]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [pdfContent, setPdfContent] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // localStorage에서 메시지 불러오기
   useEffect(() => {
-    const savedMessages = localStorage.getItem('chatMessages');
+    const savedMessages = storage.get('chatMessages');
     if (savedMessages) {
-      const parsedMessages = JSON.parse(savedMessages);
-      if (parsedMessages.length > 0) {
-        setMessages(parsedMessages);
+      try {
+        const parsedMessages = JSON.parse(savedMessages);
+        if (Array.isArray(parsedMessages) && parsedMessages.length > 0) {
+          setMessages(parsedMessages);
+        }
+      } catch (error) {
+        console.error('메시지 파싱 오류:', error);
       }
     }
   }, []);
@@ -60,7 +68,7 @@ export default function ChatPage() {
 
   // 메시지가 변경될 때마다 localStorage 업데이트
   useEffect(() => {
-    localStorage.setItem('chatMessages', JSON.stringify(messages));
+    storage.set('chatMessages', JSON.stringify(messages));
   }, [messages]);
 
   const scrollToBottom = () => {
@@ -71,9 +79,10 @@ export default function ChatPage() {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = async (message: string) => {
-    const userMessage: Message = { role: 'user', content: message }
-    setMessages(prev => [...prev, userMessage])
+  const handleSendMessage = async (content: string) => {
+    const userMessage: Message = { role: 'user', content: content }
+    const updatedMessages = [...messages, userMessage]
+    setMessages(updatedMessages)
 
     try {
       const response = await fetch('/api/chat', {
@@ -82,10 +91,7 @@ export default function ChatPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          messages: [
-            ...messages,
-            { role: 'user', content: message }
-          ],
+          messages: updatedMessages,
           pdfContent: pdfContent
         })
       });
@@ -120,15 +126,11 @@ export default function ChatPage() {
 
   const clearMessages = () => {
     const initialMessage: Message = {
-      role: 'assistant' as const,  // 타입을 명시적으로 'assistant'로 지정
+      role: 'assistant' as const,
       content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko
     };
     setMessages([initialMessage]);
-    localStorage.setItem('chatMessages', JSON.stringify([initialMessage]));
-  }
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
+    storage.set('chatMessages', JSON.stringify([initialMessage]));
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,28 +207,24 @@ export default function ChatPage() {
     }
   };
 
+  // 메시지 컴포넌트에 고유한 키 생성
+  const getMessageKey = (message: Message, index: number) => {
+    // 다크모드 상태를 키에 포함시켜 상태 변경 시 컴포넌트가 다시 렌더링되도록 함
+    return `${index}-${message.role}-${isDarkMode ? 'dark' : 'light'}`;
+  };
+
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className={`fixed top-0 left-0 right-0 z-50 border-b ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white'}`}>
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <Navigation language={language} />
-          </div>
-        </div>
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+      <div className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <Navigation language={language} />
       </div>
 
-      <div className={`max-w-3xl mx-auto shadow-sm min-h-[calc(100vh-80px)] pt-24 ${
-        isDarkMode ? 'bg-gray-900 text-white' : 'bg-white'
-      }`}>
-        <header className={`flex items-center px-4 py-3 border-b ${
-          isDarkMode ? 'border-gray-700' : ''
-        }`}>
+      <div className="max-w-3xl mx-auto shadow-sm w-full flex-1 pt-24 flex flex-col">
+        <header className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <Link href="/" className={`p-2 rounded-full ${
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-            } flex items-center gap-2`}>
-              <ArrowLeft className="w-5 h-5" />
-              <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Back</span>
+            <Link href="/" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2">
+              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <span className="text-gray-600 dark:text-gray-300">Back</span>
             </Link>
           </div>
           <div className="flex-1 flex flex-col items-center">
@@ -240,51 +238,38 @@ export default function ChatPage() {
                 priority
               />
             </div>
-            <span className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">{translate('name', language)}{translate('cloneTitle', language)}</span>
+            <span className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">{translate('name', language)}{translate('cloneTitle', language)}</span>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${
-                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-              }`}
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <button
               onClick={clearMessages}
-              className={`p-2 rounded-full ${
-                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-              }`}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Clear chat"
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".pdf"
+              className="hidden"
+            />
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-4 py-6 h-[calc(100vh-280px)]">
-          {messages.length === 0 ? (
-            <div className={`flex items-center justify-center h-full`}>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <ChatMessage key={index} message={message} isDarkMode={isDarkMode} />
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </main>
+        <div className="flex-1 p-4 overflow-y-auto">
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <ChatMessage key={getMessageKey(message, index)} message={message} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
 
-        <footer className={`border-t p-4 ${
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
-        }`}>
-          <ChatInput 
-            onSendMessage={handleSendMessage} 
-            isDarkMode={isDarkMode} 
-            placeholder={translate('chatInputPlaceholder', language)} 
-          />
-        </footer>
+        <div className="border-t border-gray-200 dark:border-gray-700 p-4 sticky bottom-0 bg-white dark:bg-gray-900">
+          <ChatInput onSendMessage={handleSendMessage} placeholder={translate('chatInputPlaceholder', language)} />
+        </div>
       </div>
     </div>
   )

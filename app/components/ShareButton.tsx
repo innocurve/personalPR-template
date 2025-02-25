@@ -39,14 +39,14 @@ export default function ShareButton({ language }: ShareButtonProps) {
     <>
       <button
         onClick={handleShare}
-        className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+        className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-500 dark:to-cyan-400 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
         aria-label="Share"
       >
         <Share2 className="w-6 h-6" />
       </button>
       
       {showToast && (
-        <div className="fixed bottom-24 right-8 z-50 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+        <div className="fixed bottom-24 right-8 z-50 bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
           {translate('linkCopied', language)}
         </div>
       )}
