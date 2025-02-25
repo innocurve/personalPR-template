@@ -44,6 +44,58 @@ declare global {
   }
 }
 
+// 모바일 디바이스 감지 함수
+const isMobile = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// iOS 디바이스 감지 함수
+const isIOS = () => {
+  if (typeof window === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+// 안드로이드 디바이스 감지 함수
+const isAndroid = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android/i.test(navigator.userAgent);
+};
+
+// 안드로이드 크롬에서 오디오 컨텍스트 활성화를 위한 함수
+const unlockAudioContext = async (audioContext: AudioContext) => {
+  if (audioContext.state === 'suspended' && isAndroid()) {
+    const unlockEvents = ['touchstart', 'touchend', 'mousedown', 'mouseup', 'click'];
+    
+    const unlock = async () => {
+      await audioContext.resume();
+      console.log('안드로이드에서 AudioContext 활성화됨');
+      
+      // 이벤트 리스너 제거
+      unlockEvents.forEach((event) => {
+        document.body.removeEventListener(event, unlock);
+      });
+    };
+    
+    // 이벤트 리스너 등록
+    unlockEvents.forEach((event) => {
+      document.body.addEventListener(event, unlock, false);
+    });
+    
+    // 빈 버퍼 재생으로 오디오 시스템 활성화 시도
+    try {
+      const buffer = audioContext.createBuffer(1, 1, 22050);
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+    } catch (e) {
+      console.error('안드로이드에서 오디오 시스템 활성화 실패:', e);
+    }
+  }
+};
+
 export default function VoiceChatPage() {
   const { language } = useLanguage()
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -55,6 +107,7 @@ export default function VoiceChatPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [conversationActive, setConversationActive] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   
   // Refs
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -93,6 +146,25 @@ export default function VoiceChatPage() {
       recognition.onstart = () => {
         console.log('음성 인식 시작')
         setIsListening(true)
+        
+        // 모바일 기기에서 음성 인식 시작 시 추가 처리
+        if (isMobile()) {
+          console.log(`${isIOS() ? 'iOS' : '안드로이드'}에서 음성 인식 시작됨`);
+          
+          // 오디오 컨텍스트 재개 시도
+          if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume().catch(err => {
+              console.error('모바일에서 AudioContext 재개 실패:', err);
+            });
+            
+            // 안드로이드에서 추가 처리
+            if (isAndroid() && audioContextRef.current) {
+              unlockAudioContext(audioContextRef.current).catch(err => {
+                console.error('안드로이드에서 AudioContext 활성화 실패:', err);
+              });
+            }
+          }
+        }
       }
       
       recognition.onresult = (event) => {
@@ -110,6 +182,53 @@ export default function VoiceChatPage() {
       
       recognition.onerror = (event) => {
         console.error('음성 인식 오류:', event.error)
+        
+        // 모바일에서 오류 처리
+        if (isMobile()) {
+          console.log(`모바일에서 음성 인식 오류 발생: ${event.error}`);
+          
+          // 오류 유형별 메시지 설정
+          let errorMsg = '';
+          let shouldRetry = false;
+          
+          switch (event.error) {
+            case 'not-allowed':
+              errorMsg = isAndroid() 
+                ? '안드로이드에서는 마이크 권한을 허용해야 합니다. 브라우저 설정을 확인해주세요.'
+                : '마이크 접근 권한이 필요합니다. 설정에서 권한을 허용해주세요.';
+              shouldRetry = true;
+              break;
+            case 'network':
+              errorMsg = '네트워크 연결을 확인해주세요.';
+              shouldRetry = true;
+              break;
+            case 'aborted':
+              // 사용자가 의도적으로 중단한 경우는 오류 메시지 표시하지 않음
+              return;
+            case 'audio-capture':
+              errorMsg = '마이크를 찾을 수 없습니다. 마이크가 연결되어 있는지 확인해주세요.';
+              break;
+            case 'service-not-allowed':
+              errorMsg = '음성 인식 서비스를 사용할 수 없습니다. 브라우저 설정을 확인해주세요.';
+              break;
+            default:
+              errorMsg = `음성 인식 중 오류가 발생했습니다: ${event.error}`;
+          }
+          
+          // 사용자에게 오류 메시지 표시
+          setErrorMessage(errorMsg);
+          
+          // 재시도 여부 결정
+          if (shouldRetry && conversationActiveRef.current) {
+            setTimeout(() => {
+              if (conversationActiveRef.current) {
+                restartRecognition();
+              }
+            }, 1500);
+            return;
+          }
+        }
+        
         stopListening()
       }
       
@@ -188,10 +307,11 @@ export default function VoiceChatPage() {
     }
   }
 
-  // startListening 함수 수정
+  // startListening 함수 수정 - 안드로이드 기기에서 오디오 컨텍스트 활성화 추가
   const startListening = async () => {
     try {
       console.log('대화 시작하기 버튼 클릭됨');
+      setErrorMessage(null); // 오류 메시지 초기화
       setConversationActive(true);
       conversationActiveRef.current = true; // 즉시 ref 업데이트
       console.log('conversationActive 상태를 true로 설정 (ref:', conversationActiveRef.current, ')');
@@ -207,11 +327,59 @@ export default function VoiceChatPage() {
         recognition.start()
       }
 
-      // 오디오 분석 설정
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // 오디오 분석 설정 - 모바일 기기에 최적화된 설정
+      const constraints = {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      };
+      
+      // 모바일 기기에서 추가 설정
+      if (isMobile()) {
+        console.log('모바일 기기에서 마이크 접근 시도');
+        // 모바일 기기에서는 기본 설정 사용
+      }
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
       mediaStreamRef.current = stream
       
-      const audioContext = new AudioContext()
+      // 오디오 컨텍스트 설정 부분 수정
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContextClass();
+      
+      // 모바일 기기에서 오디오 컨텍스트 상태 확인 및 재개
+      if (audioContext.state === 'suspended') {
+        try {
+          await audioContext.resume();
+          console.log('AudioContext 재개됨');
+          
+          // 모바일 기기에서는 추가 처리
+          if (isMobile()) {
+            if (isAndroid()) {
+              // 안드로이드에서 오디오 컨텍스트 활성화
+              await unlockAudioContext(audioContext);
+            } else {
+              // iOS 및 기타 모바일 브라우저에서는 사용자 상호작용 후 짧은 소리를 재생하여 오디오 시스템 활성화
+              try {
+                const silentContext = new AudioContextClass();
+                const buffer = silentContext.createBuffer(1, 1, 22050);
+                const source = silentContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(silentContext.destination);
+                source.start(0);
+                console.log('모바일 기기에서 오디오 시스템 활성화 시도');
+              } catch (silentErr) {
+                console.error('오디오 시스템 활성화 실패:', silentErr);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('AudioContext 재개 실패:', err);
+        }
+      }
+      
       const analyser = audioContext.createAnalyser()
       const source = audioContext.createMediaStreamSource(stream)
       
@@ -373,7 +541,7 @@ export default function VoiceChatPage() {
     }
   }, [])
 
-  // playAudio 함수 수정
+  // playAudio 함수 수정 - 안드로이드 기기에서 오디오 재생 문제 해결
   const playAudio = async (audioBlob: Blob): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
@@ -386,26 +554,80 @@ export default function VoiceChatPage() {
             // 이전 오디오 중지 중 에러는 무시
           }
         }
-
+        
+        // 오디오 URL 생성 및 오디오 객체 설정
         const audioUrl = URL.createObjectURL(audioBlob)
         const audio = new Audio(audioUrl)
         audioPlayerRef.current = audio;
         
+        // 모바일 기기에서 오디오 재생 문제 해결을 위한 설정
+        audio.preload = 'auto';
+        
+        // 이벤트 핸들러 설정
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl)
           audioPlayerRef.current = null;
           resolve();
         }
-
-        audio.onerror = () => {
+        
+        audio.onerror = (e) => {
+          console.error('오디오 재생 오류:', e);
           URL.revokeObjectURL(audioUrl)
           audioPlayerRef.current = null;
           reject(new Error('오디오 재생이 중단되었습니다.'))
         }
-
-        audio.play().catch(err => {
-          reject(new Error('오디오 재생을 시작할 수 없습니다.'))
-        })
+        
+        // 모바일 기기에서 오디오 재생 전 추가 설정
+        if (isMobile()) {
+          console.log('모바일에서 오디오 재생 시도...');
+          
+          // 모바일 기기에서 공통 설정
+          audio.setAttribute('playsinline', '');
+          audio.setAttribute('webkit-playsinline', '');
+          
+          // 오디오 컨텍스트 재개 시도 (모바일 브라우저에서 필요할 수 있음)
+          if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+            try {
+              audioContextRef.current.resume().then(() => {
+                // 안드로이드에서 추가 처리
+                if (isAndroid() && audioContextRef.current) {
+                  unlockAudioContext(audioContextRef.current).then(() => {
+                    // 안드로이드 크롬에서는 오디오 요소에 직접 클릭 이벤트 시뮬레이션
+                    try {
+                      const touchEvent = new TouchEvent('touchend');
+                      audio.dispatchEvent(touchEvent);
+                    } catch (touchErr) {
+                      console.error('터치 이벤트 시뮬레이션 실패:', touchErr);
+                    }
+                  });
+                }
+              });
+            } catch (resumeErr) {
+              console.error('AudioContext 재개 실패:', resumeErr);
+            }
+          }
+          
+          // 지연 후 재생 시도
+          setTimeout(() => {
+            audio.play().catch(err => {
+              console.error('오디오 재생 첫 시도 실패:', err);
+              
+              // 재시도
+              setTimeout(() => {
+                audio.play().catch(retryErr => {
+                  console.error('오디오 재생 재시도 실패:', retryErr);
+                  reject(new Error('오디오 재생을 시작할 수 없습니다.'));
+                });
+              }, 300);
+            });
+          }, 500);
+        } else {
+          // 데스크톱에서는 바로 재생
+          audio.play().catch(err => {
+            console.error('오디오 재생 실패:', err);
+            reject(new Error('오디오 재생을 시작할 수 없습니다.'));
+          });
+        }
       } catch (error) {
         reject(new Error('오디오 재생 준비 중 오류가 발생했습니다.'))
       }
@@ -446,6 +668,31 @@ export default function VoiceChatPage() {
     setTimeout(() => {
       try {
         console.log('재시작 타임아웃 실행됨');
+        
+        // 모바일 기기에서 재시작 시 추가 처리
+        if (isMobile()) {
+          if (isIOS()) {
+            console.log('iOS에서 음성 인식 재시작 시도');
+            // iOS에서는 오디오 컨텍스트 재개 시도
+            if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+              try {
+                audioContextRef.current.resume();
+              } catch (err) {
+                console.error('iOS에서 AudioContext 재개 실패:', err);
+              }
+            }
+          } else if (isAndroid()) {
+            console.log('안드로이드에서 음성 인식 재시작 시도');
+            // 안드로이드에서는 오디오 컨텍스트 활성화 시도
+            if (audioContextRef.current) {
+              try {
+                unlockAudioContext(audioContextRef.current);
+              } catch (err) {
+                console.error('안드로이드에서 AudioContext 활성화 실패:', err);
+              }
+            }
+          }
+        }
         
         // 기존 인스턴스가 있으면 정리
         if (recognitionRef.current) {
@@ -549,16 +796,24 @@ export default function VoiceChatPage() {
           {/* 상태 메시지 */}
           <div className={`text-center max-w-md mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             <h2 className="text-2xl font-bold mb-4">
-              {isListening 
-                ? isTalking 
-                  ? "음성을 인식하고 있습니다..."
-                  : "말씀해 주세요"
-                : `${translate('name', language)}${translate('cloneTitle', language)}와 음성으로 대화해보세요`}
+              {errorMessage 
+                ? "오류가 발생했습니다"
+                : isListening 
+                  ? isTalking 
+                    ? "음성을 인식하고 있습니다..."
+                    : "말씀해 주세요"
+                  : `${translate('name', language)}${translate('cloneTitle', language)}와 음성으로 대화해보세요`}
             </h2>
-            <p className="text-lg opacity-75">
-              {isListening 
-                ? "자동으로 음성을 감지하여 대화합니다"
-                : "자유롭게 말씀해주세요. 자동으로 음성을 인식하여 대화를 시작합니다."}
+            <p className={`text-lg ${errorMessage ? 'text-red-500 font-medium' : 'opacity-75'}`}>
+              {errorMessage 
+                ? errorMessage
+                : isListening 
+                  ? isMobile() 
+                    ? isIOS() 
+                      ? "iOS에서는 마이크 권한을 허용해야 합니다"
+                      : "안드로이드에서는 마이크 권한을 허용해야 합니다"
+                    : "자동으로 음성을 감지하여 대화합니다"
+                  : "자유롭게 말씀해주세요. 자동으로 음성을 인식하여 대화를 시작합니다."}
             </p>
           </div>
 
