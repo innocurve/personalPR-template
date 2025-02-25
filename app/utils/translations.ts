@@ -16,7 +16,9 @@ export type VoiceChatDescriptionKey =
   | 'autoVoiceDetection'
   | 'speakFreely'
   | 'startConversation'
-  | 'endConversation';
+  | 'endConversation'
+  | 'iosPermission'
+  | 'androidPermission';
 
 export type VoiceChatDescriptions = {
   [key in VoiceChatDescriptionKey]: {
@@ -442,6 +444,18 @@ export const voiceChatDescriptions: VoiceChatDescriptions = {
     en: 'End Conversation',
     ja: '会話を終了する',
     zh: '结束对话',
+  },
+  iosPermission: {
+    ko: 'iOS에서는 마이크 권한을 허용해야 합니다',
+    en: 'Microphone permission is required on iOS',
+    ja: 'iOSではマイクの権限を許可する必要があります',
+    zh: '在iOS上需要麦克风权限',
+  },
+  androidPermission: {
+    ko: '안드로이드에서는 마이크 권한을 허용해야 합니다',
+    en: 'Microphone permission is required on Android',
+    ja: 'Androidではマイクの権限を許可する必要があります',
+    zh: '在Android上需要麦克风权限',
   },
 };
 
