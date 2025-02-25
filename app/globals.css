@@ -156,3 +156,51 @@
 .dark .text-label {
   @apply text-blue-400;
 }
+
+/* 다크모드 토스트 메시지 스타일 */
+.dark [data-sonner-toast] {
+  background-color: #2d3748 !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark [data-sonner-toast] [data-success] {
+  background-color: #065f46 !important;
+}
+
+.dark [data-sonner-toast] [data-error] {
+  background-color: #7f1d1d !important;
+}
+
+.dark [data-sonner-toast] [data-info] {
+  background-color: #1e40af !important;
+}
+
+.dark [data-sonner-toast] [data-warning] {
+  background-color: #92400e !important;
+}
+
+/* 토스트 메시지 성공/실패 스타일 */
+.toast-success {
+  color: #10b981 !important;
+}
+
+.dark .toast-success {
+  color: #34d399 !important;
+}
+
+.toast-error {
+  color: #ef4444 !important;
+}
+
+.dark .toast-error {
+  color: #f87171 !important;
+}
+
+.toast-info {
+  color: #111827 !important;
+}
+
+.dark .toast-info {
+  color: #f9fafb !important;
+}

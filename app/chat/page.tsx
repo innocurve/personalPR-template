@@ -26,7 +26,8 @@ export default function ChatPage() {
   const { isDarkMode } = useTheme()
   const [messages, setMessages] = useState<Message[]>([{
     role: 'assistant',
-    content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko
+    content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko,
+    id: crypto.randomUUID()
   }]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [pdfContent, setPdfContent] = useState<string | null>(null);
@@ -53,16 +54,11 @@ export default function ChatPage() {
       if (prevMessages.length === 0) {
         return [{
           role: 'assistant',
-          content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko
+          content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko,
+          id: crypto.randomUUID()
         }];
       }
-      return [
-        {
-          role: 'assistant',
-          content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko
-        },
-        ...prevMessages.slice(1)
-      ];
+      return prevMessages;
     });
   }, [language]);
 
@@ -80,7 +76,11 @@ export default function ChatPage() {
   }, [messages])
 
   const handleSendMessage = async (content: string) => {
-    const userMessage: Message = { role: 'user', content: content }
+    const userMessage: Message = { 
+      role: 'user', 
+      content: content,
+      id: crypto.randomUUID()
+    }
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
 
@@ -108,7 +108,8 @@ export default function ChatPage() {
 
       const aiMessage: Message = { 
         role: 'assistant', 
-        content: data.response 
+        content: data.response,
+        id: crypto.randomUUID()
       }
       setMessages(prev => [...prev, aiMessage])
     } catch (error) {
@@ -118,8 +119,9 @@ export default function ChatPage() {
         content: translate(
           error instanceof Error ? error.message : 'chatError',
           language
-        )
-      }
+        ),
+        id: crypto.randomUUID()
+      };
       setMessages(prev => [...prev, errorMessage])
     }
   }
@@ -127,7 +129,8 @@ export default function ChatPage() {
   const clearMessages = () => {
     const initialMessage: Message = {
       role: 'assistant' as const,
-      content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko
+      content: initialMessages[language as keyof typeof initialMessages] || initialMessages.ko,
+      id: crypto.randomUUID()
     };
     setMessages([initialMessage]);
     storage.set('chatMessages', JSON.stringify([initialMessage]));
@@ -188,7 +191,8 @@ export default function ChatPage() {
         setPdfContent(data.text);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: `PDF 파일 "${data.filename}"이(가) 성공적으로 업로드되었습니다. 이제 파일 내용에 대해 질문해주세요.`
+          content: `PDF 파일 "${data.filename}"이(가) 성공적으로 업로드되었습니다. 이제 파일 내용에 대해 질문해주세요.`,
+          id: crypto.randomUUID()
         }]);
       } else {
         throw new Error(data.error || 'Upload failed without error message');
@@ -197,7 +201,8 @@ export default function ChatPage() {
       console.error('File upload error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `파일 업로드 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+        content: `파일 업로드 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        id: crypto.randomUUID()
       }]);
     } finally {
       // Reset file input

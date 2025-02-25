@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AudioProvider } from './contexts/AudioContext';
 import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner'
 
@@ -59,13 +60,13 @@ export default function RootLayout({
       >
         <Toaster 
           position="bottom-center"
-          theme="system"
+          theme="light"
           richColors
           toastOptions={{
             duration: 2000,
             className: 'my-toast',
             style: {
-              background: 'var(--background)',
+              background: '#ffffff',
               border: '1px solid var(--border)',
               padding: '10px 16px',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
@@ -79,7 +80,9 @@ export default function RootLayout({
         />
         <ThemeProvider>
           <LanguageProvider>
-            {children}
+            <AudioProvider>
+              {children}
+            </AudioProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

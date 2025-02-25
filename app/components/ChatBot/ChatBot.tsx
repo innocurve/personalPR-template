@@ -61,12 +61,17 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
       try {
         const parsedMessages = JSON.parse(savedMessages);
         if (Array.isArray(parsedMessages) && parsedMessages.length > 0) {
-          setMessages(parsedMessages);
+          const messagesWithIds = parsedMessages.map(msg => ({
+            ...msg,
+            id: msg.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          }));
+          setMessages(messagesWithIds);
         } else {
           setMessages([{
             role: 'assistant',
             content: translate('initialMessage', language),
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
           }]);
         }
       } catch (error) {
@@ -74,14 +79,16 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
         setMessages([{
           role: 'assistant',
           content: translate('initialMessage', language),
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         }]);
       }
     } else {
       setMessages([{
         role: 'assistant',
         content: translate('initialMessage', language),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }]);
     }
   }, [language]);
@@ -125,7 +132,8 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: `PDF 파일 "${data.filename}"이(가) 성공적으로 업로드되었습니다. 이제 파일 내용에 대해 질문해주세요.`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         }]);
       } else {
         throw new Error(data.error || 'Upload failed');
@@ -135,7 +143,8 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: `파일 업로드 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }]);
     }
   };
@@ -148,7 +157,8 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
       const newUserMessage: Message = { 
         role: 'user', 
         content: message,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       };
       const updatedMessages = [...messages, newUserMessage];
       setMessages(updatedMessages);
@@ -157,7 +167,8 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
       const systemMessage: Message | null = pdfContent ? {
         role: 'system',
         content: `다음은 업로드된 PDF 파일의 내용입니다:\n\n${pdfContent}\n\n이 내용을 참고하여 사용자의 질문에 답변해주세요.`,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_system_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       } : null;
 
       const response = await fetch('/api/chat', {
@@ -182,14 +193,16 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: data.response,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }]);
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: '죄송합니다. 오류가 발생했습니다.',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }]);
     } finally {
       setIsLoading(false);
@@ -226,7 +239,8 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: reservationMessage,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         }]);
         setShowReservationForm(false);
       } else {
@@ -237,7 +251,8 @@ const ChatBot = ({ isOpen: externalIsOpen, onOpenChange }: ChatBotProps) => {
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: '죄송합니다. 예약 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }]);
     }
   };

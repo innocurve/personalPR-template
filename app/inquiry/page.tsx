@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
 import { translate } from '../utils/translations'
 import { useLanguage } from '../hooks/useLanguage'
+import { useTheme } from '../contexts/ThemeContext'
 import Navigation from '../components/Navigation'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -13,6 +14,7 @@ import { storage } from '../utils/storage'
 
 export default function InquiryPage() {
   const { language } = useLanguage()
+  const { isDarkMode } = useTheme()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -45,7 +47,9 @@ export default function InquiryPage() {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('문의가 성공적으로 제출되었습니다.')
+        toast.success('문의가 성공적으로 제출되었습니다.', {
+          className: 'dark-toast toast-success'
+        })
         // 폼 초기화
         setFormData({
           name: '',
@@ -58,7 +62,9 @@ export default function InquiryPage() {
       }
     } catch (error) {
       console.error('Submit error:', error)
-      toast.error('문의 제출에 실패했습니다. 다시 시도해 주세요.')
+      toast.error('문의 제출에 실패했습니다. 다시 시도해 주세요.', {
+        className: 'dark-toast toast-error'
+      })
     } finally {
       setIsSubmitting(false)
     }
