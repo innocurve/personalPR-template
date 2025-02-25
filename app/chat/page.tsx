@@ -246,6 +246,30 @@ export default function ChatPage() {
             <span className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">{translate('name', language)}{translate('cloneTitle', language)}</span>
           </div>
           <div className="flex items-center gap-2">
+          <button
+              onClick={() => router.push('/voice-chat')}
+              className={`p-2 rounded-lg transition-colors duration-200 ${
+                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+              }`}
+              title="음성 대화"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 10L4 14" />
+                <path d="M8 7L8 17" />
+                <path d="M12 4L12 20" />
+                <path d="M16 7L16 17" />
+                <path d="M20 10L20 14" />
+              </svg>
+            </button>
+            
             <button
               onClick={clearMessages}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
