@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Mail, Phone } from 'lucide-react'
 import ContactOptions from './components/ContactOptions'
 import type { PostData } from './types/post'
+import ShareButton from './components/ShareButton'
 
 export default function Home() {
 const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -420,6 +421,8 @@ return (
         </FadeInSection>
       </div>
     </main>
+
+    <ShareButton language={language} />
 
     <footer className="bg-gray-800 text-white py-12 mt-12">
       <div className="max-w-4xl mx-auto px-4">
