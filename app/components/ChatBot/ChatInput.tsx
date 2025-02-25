@@ -14,36 +14,59 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void
   placeholder?: string
   isDarkMode?: boolean
+  isVoiceMode?: boolean
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   placeholder = '메시지를 입력하세요...',
   isDarkMode,
+  isVoiceMode,
 }) => {
   const [message, setMessage] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [audioLevel, setAudioLevel] = useState<number>(0)
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const animationFrameRef = useRef<number | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const microphoneStreamRef = useRef<MediaStream | null>(null)
+  const recordingStartRef = useRef<number | null>(null)
 
-  // 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-      if (mediaRecorderRef.current && isRecording) {
-        mediaRecorderRef.current.stop()
-      }
+  // 음성 검증을 위한 무효한 구문 목록 추가
+  const invalidPhrases = [
+    '끝',
+    '완성',
+    'MBC 뉴스 이덕영입니다.'
+  
+  ];
+
+  // 텍스트 검증 함수
+  const validateText = (text: string): string | null => {
+    // 1. 빈 텍스트 체크
+    if (!text?.trim()) {
+      return null;
     }
-  }, [isRecording])
 
+    // 2. 너무 짧은 텍스트 체크
+    if (text.trim().length < 2) {
+      return null;
+    }
+
+    // 3. 의미 없는 텍스트 체크
+    if (invalidPhrases.some(phrase => 
+      text.toLowerCase().includes(phrase.toLowerCase())
+    )) {
+      return null;
+    }
+
+    return text.trim();
+  };
+
+  // 텍스트 입력 제출 처리
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (message.trim()) {
@@ -52,6 +75,93 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   }
 
+  // 음성 녹음 시작
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      microphoneStreamRef.current = stream
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      })
+      mediaRecorderRef.current = mediaRecorder
+      chunksRef.current = []
+      recordingStartRef.current = Date.now()
+
+      // 오디오 컨텍스트 및 분석기 설정 (음성 레벨 표시용)
+      const audioContext = new AudioContext()
+      audioContextRef.current = audioContext
+      const source = audioContext.createMediaStreamSource(stream)
+      const analyser = audioContext.createAnalyser()
+      analyser.fftSize = 256
+      source.connect(analyser)
+      analyserRef.current = analyser
+
+      const updateAudioLevel = () => {
+        if (!isRecording) return
+        const dataArray = new Uint8Array(analyser.frequencyBinCount)
+        analyser.getByteFrequencyData(dataArray)
+        const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length
+        setAudioLevel(average)
+        animationFrameRef.current = requestAnimationFrame(updateAudioLevel)
+      }
+      setIsRecording(true)
+      updateAudioLevel()
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data)
+        }
+      }
+
+      mediaRecorder.onstop = async () => {
+        // 녹음 시간이 1초 이상인지 체크
+        const recordingTime = recordingStartRef.current ? Date.now() - recordingStartRef.current : 0
+        if (recordingTime < 1000) {
+          toast.error('음성이 너무 짧습니다. 1초 이상 말씀해 주세요.')
+          cleanupRecording()
+          return
+        }
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        await processAudio(audioBlob)
+        cleanupRecording()
+      }
+
+      mediaRecorder.start(1000) // 1초마다 데이터 수집
+      toast.success('음성 인식을 시작합니다')
+    } catch (error) {
+      console.error('녹음 시작 오류:', error)
+      toast.error('마이크 접근 권한이 필요합니다')
+    }
+  }
+
+  // 녹음 중지
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop()
+      setIsRecording(false)
+    }
+  }
+
+  // 녹음 관련 리소스 정리
+  const cleanupRecording = () => {
+    setIsRecording(false)
+    setAudioLevel(0)
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+    }
+    if (microphoneStreamRef.current) {
+      microphoneStreamRef.current.getTracks().forEach(track => track.stop())
+    }
+    mediaRecorderRef.current = null
+    chunksRef.current = []
+    recordingStartRef.current = null
+  }
+
+  // 음성 데이터 처리 (STT API 호출)
   const processAudio = async (audioBlob: Blob) => {
     try {
       setIsProcessing(true)
@@ -68,138 +178,89 @@ const ChatInput: React.FC<ChatInputProps> = ({
       }
 
       const data = await response.json()
-      if (data.text) {
-        // 음성 인식 결과를 바로 전송
-        onSendMessage(data.text)
+      
+      // 음성 인식 결과 검증
+      const validatedText = data.text ? validateText(data.text) : null;
+      
+      if (validatedText) {
+        onSendMessage(validatedText)
+        toast.success('음성 인식이 완료되었습니다')
+      } else {
+        // 음성이 인식되지 않았거나 유효하지 않은 텍스트인 경우
+        toast.error('음성이 감지되지 않았습니다.')
       }
     } catch (error) {
       console.error('음성 처리 오류:', error)
-      toast.error('음성을 텍스트로 변환하는 중 오류가 발생했습니다.', {
-        style: {
-          color: 'var(--foreground)',
-          background: 'var(--background)',
-          border: '1px solid var(--border)'
-        }
-      })
+      toast.error('음성을 텍스트로 변환하는 중 오류가 발생했습니다.')
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      })
-      mediaRecorderRef.current = mediaRecorder
-      chunksRef.current = []
-
-      // 오디오 컨텍스트 설정
-      const audioContext = new AudioContext()
-      const source = audioContext.createMediaStreamSource(stream)
-      const analyser = audioContext.createAnalyser()
-      analyser.fftSize = 256
-      source.connect(analyser)
-      analyserRef.current = analyser
-
-      // 음성 레벨 모니터링
-      const updateAudioLevel = () => {
-        if (!isRecording) return
-        const dataArray = new Uint8Array(analyser.frequencyBinCount)
-        analyser.getByteFrequencyData(dataArray)
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length
-        setAudioLevel(average)
-        animationFrameRef.current = requestAnimationFrame(updateAudioLevel)
+  // 컴포넌트 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
       }
-      updateAudioLevel()
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data)
-        }
+      if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stop()
       }
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        await processAudio(audioBlob)
-        stream.getTracks().forEach(track => track.stop())
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current)
-        }
-      }
-
-      mediaRecorder.start(1000) // 1초마다 데이터 수집
-      setIsRecording(true)
-      toast.success('음성 인식을 시작합니다', {
-        style: {
-          color: 'var(--foreground)',
-          background: 'var(--background)',
-          border: '1px solid var(--border)'
-        }
-      })
-    } catch (error) {
-      console.error('녹음 시작 오류:', error)
-      toast.error('마이크 접근 권한이 필요합니다', {
-        style: {
-          color: 'var(--foreground)',
-          background: 'var(--background)',
-          border: '1px solid var(--border)'
-        }
-      })
     }
-  }
+  }, [isRecording])
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-      toast.success('음성 인식이 완료되었습니다', {
-        style: {
-          color: 'var(--foreground)',
-          background: 'var(--background)',
-          border: '1px solid var(--border)'
-        }
-      })
+  // isVoiceMode에 따른 자동 녹음 시작/종료
+  useEffect(() => {
+    if (isVoiceMode && !isRecording && !isProcessing) {
+      startRecording()
     }
+    if (!isVoiceMode && isRecording) {
+      stopRecording()
+    }
+  }, [isVoiceMode])
+
+  // 녹음 중일 때는 placeholder 변경
+  const getPlaceholder = () => {
+    return isRecording ? '음성인식 중입니다...' : placeholder
   }
 
   return (
     <form onSubmit={handleSubmit} className="relative">
       <div
-        className="flex items-center rounded-lg border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-2"
+        className={`flex items-center rounded-lg border p-2 ${
+          isDarkMode
+            ? 'bg-gray-800 border-gray-700 text-white'
+            : 'bg-white border-gray-300 text-gray-900'
+        }`}
       >
         <input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder={placeholder}
-          className="flex-grow px-3 py-2 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          placeholder={getPlaceholder()}
+          className={`flex-grow px-3 py-2 outline-none bg-transparent`}
           disabled={isRecording || isProcessing}
         />
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isProcessing}
-            className={`p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 ${isProcessing ? 'cursor-not-allowed opacity-50' : ''}`}
+            className={`p-2 rounded-full transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 ${
+              isProcessing ? 'cursor-not-allowed opacity-50' : ''
+            }`}
             title={isRecording ? '녹음 중지' : '음성으로 입력'}
           >
             {isProcessing ? (
-              <div className="relative">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap">
-                  변환 중...
-                </span>
-              </div>
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : isRecording ? (
               <div className="relative">
                 <MicOff className="w-5 h-5 text-red-500" />
-                <div 
+                <div
                   className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse"
                   style={{
                     transform: `scale(${1 + audioLevel / 100})`,
-                    opacity: 0.8
+                    opacity: 0.8,
                   }}
                 />
               </div>
@@ -210,11 +271,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
           <button
             type="submit"
             disabled={!message.trim() || isProcessing}
-            className={`p-2 rounded-full ${
+            className={`p-2 rounded-full transition-colors ${
               message.trim() && !isProcessing
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-400'
-            } transition-colors`}
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+            }`}
           >
             <Send className="w-5 h-5" />
           </button>

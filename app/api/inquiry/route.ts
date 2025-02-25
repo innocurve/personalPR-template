@@ -1,40 +1,57 @@
 import { NextResponse } from 'next/server'
 
-export async function POST(request: Request) {
+const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL
+
+export async function POST(req: Request) {
+  if (!MAKE_WEBHOOK_URL) {
+    console.error('Webhook URL is not defined')
+    return NextResponse.json(
+      { error: 'Webhook URL이 설정되지 않았습니다.' },
+      { status: 500 }
+    )
+  }
+
   try {
-    const data = await request.json()
+    const data = await req.json()
+    console.log('Received data:', data) // 데이터 로깅
     
-    // make.com 웹훅 URL (실제 URL로 교체 필요)
-    const webhookUrl = process.env.MAKE_WEBHOOK_URL
-
-    if (!webhookUrl) {
-      throw new Error('Webhook URL is not configured')
-    }
-
-    // make.com 웹훅으로 데이터 전송
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(MAKE_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        inquiry: data.inquiry,
-        submittedAt: new Date().toISOString()
-      }),
+      body: JSON.stringify(data),
     })
 
-    if (!response.ok) {
-      throw new Error('Failed to send webhook')
+    // 응답 로깅
+    console.log('Webhook response status:', response.status)
+    const responseText = await response.text()
+    console.log('Webhook response:', responseText)
+
+    if (response.status === 400 && responseText.includes('Access denied from this IP')) {
+      return NextResponse.json(
+        { error: 'IP 접근 권한이 없습니다. 관리자에게 문의해주세요.' },
+        { status: 400 }
+      )
     }
 
-    return NextResponse.json({ success: true })
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: `웹훅 전송 실패: ${responseText}` },
+        { status: response.status }
+      )
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: '문의가 성공적으로 전송되었습니다.' 
+    })
+
   } catch (error) {
-    console.error('Inquiry submission error:', error)
+    console.error('Webhook error:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to submit inquiry' },
+      { error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
       { status: 500 }
     )
   }
