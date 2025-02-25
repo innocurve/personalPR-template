@@ -327,13 +327,13 @@ export const translations: TranslationDictionary = {
     ja: '',
     zh: ''
   },
-  affiliations_worldyouth: {
+  affiliations_1: {
     ko: '이노커브',
     en: 'InnoCurve',
     ja: 'イノカーブ',
     zh: 'InnoCurve'
   },
-  affiliations_innocurve: {
+  affiliations_2: {
     ko: '추가 소속 기관',
     en: 'Additional Affiliation',
     ja: '追加所属',

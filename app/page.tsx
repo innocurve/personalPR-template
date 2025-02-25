@@ -439,9 +439,9 @@ return (
             <h3 className="font-bold text-lg mb-4">{translate('affiliation', language)}</h3>
             <div className="space-y-2">
               <p className="block text-white">
-                {translate('affiliations_worldyouth', language)}
+                {translate('affiliations_1', language)}
               </p>
-              <p>{translate('affiliations_innocurve', language)}</p>
+              <p>{translate('affiliations_2', language)}</p>
             </div>
           </div>
           <div>
