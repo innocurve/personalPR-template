@@ -221,8 +221,16 @@ export default function VoiceChatPage() {
               shouldRetry = true;
               break;
             case 'aborted':
-              // 사용자가 의도적으로 중단한 경우는 오류 메시지 표시하지 않음
-              return;
+              // iOS에서는 aborted 오류가 자주 발생하므로 특별 처리
+              if (isIOS()) {
+                console.log('iOS에서 aborted 오류 발생, 재시작 시도...');
+                shouldRetry = true;
+                errorMsg = ''; // 오류 메시지 표시하지 않음
+              } else {
+                // 다른 기기에서는 사용자가 의도적으로 중단한 경우로 간주
+                return;
+              }
+              break;
             case 'audio-capture':
               errorMsg = '마이크를 찾을 수 없습니다. 마이크가 연결되어 있는지 확인해주세요.';
               break;
@@ -325,7 +333,7 @@ export default function VoiceChatPage() {
     }
   }
 
-  // startListening 함수 수정 - 안드로이드 기기에서 오디오 컨텍스트 활성화 추가
+  // startListening 함수 수정 - iOS에서 오디오 권한 확보 및 음성 인식 시작 과정 개선
   const startListening = async () => {
     try {
       console.log('대화 시작하기 버튼 클릭됨');
@@ -333,24 +341,57 @@ export default function VoiceChatPage() {
       setConversationActive(true);
       conversationActiveRef.current = true; // 즉시 ref 업데이트
       console.log('conversationActive 상태를 true로 설정 (ref:', conversationActiveRef.current, ')');
+      
       // 기존 리소스 정리
       if (recognitionRef.current) {
-        recognitionRef.current.stop()
-        recognitionRef.current = null
+        try {
+          recognitionRef.current.stop();
+          recognitionRef.current = null;
+        } catch (err) {
+          console.warn('기존 음성 인식 중지 중 오류:', err);
+        }
       }
-
-      // iOS에서 오디오 재생 권한 확보
-      if (isIOS()) {
-        console.log('iOS에서 오디오 권한 확보 시도');
-        await unlockAudioOnIOS();
-        // not-allowed 오류 카운터 초기화
-        notAllowedErrorCount.current = 0;
-      }
-
-      // Speech Recognition 새로 설정 및 시작
-      const recognition = setupSpeechRecognition()
-      if (recognition) {
-        recognition.start()
+      
+      // 모바일 기기에서 권한 확보 및 초기화
+      if (isMobile()) {
+        try {
+          // iOS에서 오디오 권한 확보
+          if (isIOS()) {
+            console.log('iOS에서 오디오 권한 확보 시도');
+            await unlockAudioOnIOS();
+            // not-allowed 오류 카운터 초기화
+            notAllowedErrorCount.current = 0;
+          }
+          
+          // 모바일에서 마이크 권한 확보를 위한 초기 getUserMedia 호출
+          console.log('모바일 기기에서 마이크 접근 권한 확보 시도');
+          const constraints = {
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          };
+          
+          // 마이크 권한 미리 요청
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          
+          // 기존 스트림이 있으면 정리
+          if (mediaStreamRef.current) {
+            mediaStreamRef.current.getTracks().forEach(track => track.stop());
+          }
+          
+          // 새 스트림 저장
+          mediaStreamRef.current = stream;
+          console.log('모바일 기기에서 마이크 접근 권한 확보 성공');
+          
+          // 약간의 지연 후 음성 인식 시작 (iOS에서 더 안정적)
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (err) {
+          console.error('모바일 기기에서 권한 확보 실패:', err);
+          setErrorMessage('마이크 접근 권한을 허용해주세요.');
+          return; // 권한 확보 실패 시 함수 종료
+        }
       }
 
       // 오디오 분석 설정 - 모바일 기기에 최적화된 설정
@@ -417,6 +458,12 @@ export default function VoiceChatPage() {
       
       setIsListening(true)
       monitorAudioLevel()
+      
+      // Speech Recognition 새로 설정 및 시작
+      const recognition = setupSpeechRecognition();
+      if (recognition) {
+        recognition.start();
+      }
       
     } catch (error) {
       console.error('음성 인식 시작 오류:', error)
@@ -567,7 +614,7 @@ export default function VoiceChatPage() {
     }
   }, [])
 
-  // playAudio 함수 수정 - 안드로이드 기기에서 오디오 재생 문제 해결
+  // playAudio 함수 수정 - iOS에서 오디오 재생 문제 해결
   const playAudio = async (audioBlob: Blob): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
@@ -613,10 +660,21 @@ export default function VoiceChatPage() {
           
           // iOS에서 오디오 재생 권한 확보
           if (isIOS()) {
-            console.log('iOS에서 오디오 권한 확보 시도');
-            unlockAudioOnIOS().catch(err => {
-              console.error('iOS에서 오디오 재생 권한 재확보 실패:', err);
-            });
+            console.log('iOS에서 오디오 재생 준비...');
+            
+            // iOS에서 오디오 요소에 추가 속성 설정
+            audio.muted = true; // 처음에는 음소거로 시작
+            audio.volume = 0;
+            (audio as any).playsInline = true;
+            
+            // 이미 권한이 확보되었는지 확인
+            if (!permissionGrantedRef.current) {
+              console.log('iOS에서 오디오 권한 재확보 시도');
+              unlockAudioOnIOS().catch(err => {
+                console.error('iOS에서 오디오 재생 권한 재확보 실패:', err);
+                // 실패해도 계속 진행
+              });
+            }
           }
           
           // 지연 후 재생 시도
@@ -707,7 +765,13 @@ export default function VoiceChatPage() {
     console.log('iOS에서 오디오 재생 권한 확보 시도...');
     
     try {
-      // 짧은 무음 오디오 생성 및 재생
+      // 이미 권한이 확보된 경우 스킵
+      if (permissionGrantedRef.current) {
+        console.log('iOS에서 이미 오디오 권한이 확보되어 있습니다.');
+        return;
+      }
+      
+      // 짧은 무음 오디오 생성 및 재생 (iOS Safari에 최적화)
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContext();
       
@@ -724,16 +788,35 @@ export default function VoiceChatPage() {
       (silentAudio as any).playsInline = true;
       silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
       
-      // 동시에 실행
-      await Promise.all([
-        source.start(0),
-        silentAudio.play()
-      ]);
+      // 한 번에 하나씩 실행 (Promise.all 대신)
+      try {
+        await source.start(0);
+        console.log('iOS에서 AudioContext 소스 시작 성공');
+      } catch (sourceErr) {
+        console.warn('iOS에서 AudioContext 소스 시작 실패:', sourceErr);
+      }
       
+      try {
+        await silentAudio.play();
+        console.log('iOS에서 무음 오디오 재생 성공');
+      } catch (audioErr) {
+        console.warn('iOS에서 무음 오디오 재생 실패:', audioErr);
+        // 실패해도 계속 진행
+      }
+      
+      // 성공으로 간주
       console.log('iOS에서 오디오 재생 권한 확보 성공');
       setPermissionGranted(true);
+      
+      // 오디오 컨텍스트 참조 저장 (나중에 재사용)
+      if (!audioContextRef.current) {
+        audioContextRef.current = audioContext;
+      }
+      
+      return audioContext;
     } catch (err) {
       console.error('iOS에서 오디오 재생 권한 확보 실패:', err);
+      // 실패해도 계속 진행할 수 있도록 오류를 다시 throw하지 않음
     }
   };
 
@@ -773,15 +856,15 @@ export default function VoiceChatPage() {
               } catch (err) {
                 console.error('iOS에서 AudioContext 재개 실패:', err);
               }
-            }
-          } else if (isAndroid()) {
-            console.log('안드로이드에서 음성 인식 재시작 시도');
-            // 안드로이드에서는 오디오 컨텍스트 활성화 시도
-            if (audioContextRef.current) {
-              try {
-                unlockAudioContext(audioContextRef.current);
-              } catch (err) {
-                console.error('안드로이드에서 AudioContext 활성화 실패:', err);
+            } else if (isAndroid()) {
+              console.log('안드로이드에서 음성 인식 재시작 시도');
+              // 안드로이드에서는 오디오 컨텍스트 활성화 시도
+              if (audioContextRef.current) {
+                try {
+                  unlockAudioContext(audioContextRef.current);
+                } catch (err) {
+                  console.error('안드로이드에서 AudioContext 활성화 실패:', err);
+                }
               }
             }
           }
