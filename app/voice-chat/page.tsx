@@ -6,7 +6,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '../contexts/LanguageContext'
-import { translate } from '../utils/translations'
+import { useTheme } from '../contexts/ThemeContext'
+import { translate, translateVoiceChat } from '../utils/translations'
 
 // 파일 상단에 타입 정의 추가
 interface SpeechRecognitionEvent {
@@ -46,7 +47,7 @@ declare global {
 
 export default function VoiceChatPage() {
   const { language } = useLanguage()
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { isDarkMode, toggleDarkMode } = useTheme()
   
   // 음성 대화 관련 상태 추가
   const [isListening, setIsListening] = useState(false)
@@ -479,26 +480,28 @@ export default function VoiceChatPage() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white'}`}>
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* 헤더 */}
       <header className={`fixed top-0 left-0 right-0 z-50 border-b ${
-        isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white'
+        isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
       }`}>
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             <Link 
               href="/chat" 
               className={`p-2 rounded-full ${
-                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                isDarkMode 
+                  ? 'hover:bg-gray-700 text-white' 
+                  : 'hover:bg-gray-100 text-gray-900'
               } flex items-center gap-2`}
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>채팅으로 돌아가기</span>
+              <span>Back</span>
             </Link>
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={toggleDarkMode}
               className={`p-2 rounded-full ${
-                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                isDarkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-gray-100 text-gray-900'
               }`}
             >
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -547,18 +550,18 @@ export default function VoiceChatPage() {
           </div>
 
           {/* 상태 메시지 */}
-          <div className={`text-center max-w-md mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          <div className={`text-center max-w-md mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             <h2 className="text-2xl font-bold mb-4">
               {isListening 
                 ? isTalking 
-                  ? "음성을 인식하고 있습니다..."
-                  : "말씀해 주세요"
-                : `${translate('name', language)}${translate('cloneTitle', language)}와 음성으로 대화해보세요`}
+                  ? translateVoiceChat('recognizingVoice', language) || "음성을 인식하고 있습니다..."
+                  : translateVoiceChat('pleaseSpeak', language) || "말씀해 주세요"
+                : translate('voiceChatTitle', language).replace('{name}', `${translate('name', language)}${translate('cloneTitle', language)}`)}
             </h2>
             <p className="text-lg opacity-75">
               {isListening 
-                ? "자동으로 음성을 감지하여 대화합니다"
-                : "자유롭게 말씀해주세요. 자동으로 음성을 인식하여 대화를 시작합니다."}
+                ? translateVoiceChat('autoVoiceDetection', language) || "자동으로 음성을 감지하여 대화합니다"
+                : translateVoiceChat('speakFreely', language) || "자유롭게 말씀해주세요. 자동으로 음성을 인식하여 대화를 시작합니다."}
             </p>
           </div>
 
@@ -571,10 +574,10 @@ export default function VoiceChatPage() {
                 : isDarkMode 
                   ? 'bg-blue-600 hover:bg-blue-700' 
                   : 'bg-blue-500 hover:bg-blue-600'
-              } transform transition-all duration-200 hover:scale-105`}
+              } transform transition-all duration-200 hover:scale-105 shadow-lg`}
             whileTap={{ scale: 0.95 }}
           >
-            {isListening ? '대화 종료하기' : '대화 시작하기'}
+            {isListening ? translateVoiceChat('endConversation', language) || '대화 종료하기' : translateVoiceChat('startConversation', language) || '대화 시작하기'}
           </motion.button>
         </div>
       </main>

@@ -159,9 +159,9 @@
 
 /* 다크모드 토스트 메시지 스타일 */
 .dark [data-sonner-toast] {
-  background-color: #2d3748 !important;
+  background-color: #1f2937 !important;
   color: #f3f4f6 !important;
-  border-color: #4b5563 !important;
+  border-color: #374151 !important;
 }
 
 .dark [data-sonner-toast] [data-success] {
@@ -180,21 +180,25 @@
   background-color: #92400e !important;
 }
 
-/* 토스트 메시지 성공/실패 스타일 */
+/* 토스트 메시지 클래스 */
+.dark-toast {
+  @apply dark:bg-gray-800 dark:text-white dark:border-gray-700;
+}
+
 .toast-success {
-  color: #10b981 !important;
+  @apply bg-green-50 text-green-800 border-green-200;
 }
 
 .dark .toast-success {
-  color: #34d399 !important;
+  @apply bg-green-900 text-green-100 border-green-800;
 }
 
 .toast-error {
-  color: #ef4444 !important;
+  @apply bg-red-50 text-red-800 border-red-200;
 }
 
 .dark .toast-error {
-  color: #f87171 !important;
+  @apply bg-red-900 text-red-100 border-red-800;
 }
 
 .toast-info {

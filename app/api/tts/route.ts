@@ -3,8 +3,10 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const { text, voice_settings } = await request.json();
-    const VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
-    const API_KEY = process.env.ELEVENLABS_API_KEY;
+    
+    // 두 가지 환경 변수 이름을 모두 지원하도록 수정
+    const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || process.env.ELEVEN_LABS_VOICE_ID;
+    const API_KEY = process.env.ELEVENLABS_API_KEY || process.env.ELEVEN_LABS_API_KEY;
 
     // 환경 변수 검증 로깅 개선
     console.log('환경 변수 상태:', { 

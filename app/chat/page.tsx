@@ -12,6 +12,7 @@ import Navigation from '../components/Navigation'
 import { useTheme } from '../contexts/ThemeContext'
 import { useRouter } from 'next/navigation'
 import { storage } from '../utils/storage'
+import WaveformIcon from '../components/WaveformIcon'
 
 const initialMessages = {
   ko: "안녕하세요! 저는 정이노의 AI 클론입니다. 무엇을 도와드릴까요?",
@@ -246,36 +247,25 @@ export default function ChatPage() {
             <span className="text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">{translate('name', language)}{translate('cloneTitle', language)}</span>
           </div>
           <div className="flex items-center gap-2">
-          <button
-              onClick={() => router.push('/voice-chat')}
-              className={`p-2 rounded-lg transition-colors duration-200 ${
-                isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-              }`}
-              title="음성 대화"
+            <Link
+              href="/voice-chat"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Voice Chat"
+              title={translate('voiceChat', language)}
             >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M4 10L4 14" />
-                <path d="M8 7L8 17" />
-                <path d="M12 4L12 20" />
-                <path d="M16 7L16 17" />
-                <path d="M20 10L20 14" />
-              </svg>
-            </button>
-            
+              <WaveformIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            </Link>
             <button
               onClick={clearMessages}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-              aria-label="Clear chat"
+              className={`p-2 rounded-full ${
+                isDarkMode 
+                  ? 'hover:bg-gray-700 text-white' 
+                  : 'hover:bg-gray-100 text-gray-900'
+              }`}
+              aria-label="Clear chat history"
+              title={translate('clearChat', language) || "채팅 내역 비우기"}
             >
-              <Trash2 className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <Trash2 className="w-5 h-5" />
             </button>
             <input
               type="file"
@@ -297,7 +287,7 @@ export default function ChatPage() {
         </div>
 
         <div className="border-t border-gray-200 dark:border-gray-700 p-4 sticky bottom-0 bg-white dark:bg-gray-900">
-          <ChatInput onSendMessage={handleSendMessage} placeholder={translate('chatInputPlaceholder', language)} />
+          <ChatInput onSendMessage={handleSendMessage} placeholder={translate('chatInputPlaceholder', language)} isDarkMode={isDarkMode} />
         </div>
       </div>
     </div>

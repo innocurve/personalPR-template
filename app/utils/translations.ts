@@ -2,8 +2,24 @@ export type Language = 'ko' | 'en' | 'ja' | 'zh';
 
 export type TranslationKey = string;
 
+// 기본 번역 타입 정의
 export type TranslationDictionary = {
   [key in TranslationKey]: {
+    [lang in Language]: string;
+  };
+};
+
+// 음성 대화 설명을 위한 타입 정의
+export type VoiceChatDescriptionKey = 
+  | 'recognizingVoice'
+  | 'pleaseSpeak'
+  | 'autoVoiceDetection'
+  | 'speakFreely'
+  | 'startConversation'
+  | 'endConversation';
+
+export type VoiceChatDescriptions = {
+  [key in VoiceChatDescriptionKey]: {
     [lang in Language]: string;
   };
 };
@@ -344,8 +360,100 @@ export const translations: TranslationDictionary = {
     en: 'Link copied to clipboard',
     ja: 'リンクがコピーされました',
     zh: '链接已复制'
-  }
+  },
+  voiceChat: {
+    ko: '음성 대화',
+    en: 'Voice Chat',
+    ja: '音声チャット',
+    zh: '语音聊天',
+  },
+  voiceChatTitle: {
+    ko: '{name}와 음성으로 대화해보세요',
+    en: 'Voice chat with {name}',
+    ja: '{name}と音声で会話してみましょう',
+    zh: '与{name}进行语音对话',
+  },
+  listenAudio: {
+    ko: '음성으로 듣기',
+    en: 'Listen to Audio',
+    ja: '音声で聞く',
+    zh: '语音播放',
+  },
+  voiceInput: {
+    ko: '음성 입력',
+    en: 'Voice Input',
+    ja: '音声入力',
+    zh: '语音输入',
+  },
+  clearChat: {
+    ko: '채팅 내역 비우기',
+    en: 'Clear Chat History',
+    ja: 'チャット履歴をクリア',
+    zh: '清除聊天记录',
+  },
+  stopRecording: {
+    ko: '녹음 중지',
+    en: 'Stop Recording',
+    ja: '録音を停止',
+    zh: '停止录音',
+  },
+  backToChat: {
+    ko: '채팅으로 돌아가기',
+    en: 'Back to Chat',
+    ja: 'チャットに戻る',
+    zh: '返回聊天',
+  },
 };
+
+// 음성 대화 페이지 설명 통합
+export const voiceChatDescriptions: VoiceChatDescriptions = {
+  recognizingVoice: {
+    ko: '음성을 인식하고 있습니다...',
+    en: 'Recognizing your voice...',
+    ja: '音声を認識しています...',
+    zh: '正在识别您的声音...',
+  },
+  pleaseSpeak: {
+    ko: '말씀해 주세요',
+    en: 'Please speak',
+    ja: 'お話しください',
+    zh: '请说话',
+  },
+  autoVoiceDetection: {
+    ko: '자동으로 음성을 감지하여 대화합니다',
+    en: 'Automatically detects voice for conversation',
+    ja: '自動的に音声を検出して会話します',
+    zh: '自动检测语音进行对话',
+  },
+  speakFreely: {
+    ko: '자유롭게 말씀해주세요. 자동으로 음성을 인식하여 대화를 시작합니다.',
+    en: 'Speak freely. Voice will be automatically recognized to start the conversation.',
+    ja: '自由に話してください。自動的に音声を認識して会話を始めます。',
+    zh: '请自由发言。系统会自动识别语音并开始对话。',
+  },
+  startConversation: {
+    ko: '대화 시작하기',
+    en: 'Start Conversation',
+    ja: '会話を始める',
+    zh: '开始对话',
+  },
+  endConversation: {
+    ko: '대화 종료하기',
+    en: 'End Conversation',
+    ja: '会話を終了する',
+    zh: '结束对话',
+  },
+};
+
+// 음성 대화 페이지 설명을 위한 번역 함수
+export function translateVoiceChat(key: VoiceChatDescriptionKey, lang: Language): string {
+  try {
+    return voiceChatDescriptions[key][lang] || voiceChatDescriptions[key]['ko'] || key;
+  } catch (error) {
+    console.error(`Voice chat translation error for key: ${key}, language: ${lang}`, error);
+    return key;
+  }
+}
 
 export function translate(key: TranslationKey, lang: Language): string {
   try {
