@@ -18,7 +18,8 @@ export type VoiceChatDescriptionKey =
   | 'startConversation'
   | 'endConversation'
   | 'iosPermission'
-  | 'androidPermission';
+  | 'androidPermission'
+  | 'voiceChatTitle';
 
 export type VoiceChatDescriptions = {
   [key in VoiceChatDescriptionKey]: {
@@ -369,12 +370,6 @@ export const translations: TranslationDictionary = {
     ja: '音声チャット',
     zh: '语音聊天',
   },
-  voiceChatTitle: {
-    ko: '{name}와 음성으로 대화해보세요',
-    en: 'Voice chat with {name}',
-    ja: '{name}と音声で会話してみましょう',
-    zh: '与{name}进行语音对话',
-  },
   listenAudio: {
     ko: '음성으로 듣기',
     en: 'Listen to Audio',
@@ -428,10 +423,10 @@ export const voiceChatDescriptions: VoiceChatDescriptions = {
     zh: '自动检测语音进行对话',
   },
   speakFreely: {
-    ko: '자유롭게 말씀해주세요. 자동으로 음성을 인식하여 대화를 시작합니다.',
-    en: 'Speak freely. Voice will be automatically recognized to start the conversation.',
-    ja: '自由に話してください。自動的に音声を認識して会話を始めます。',
-    zh: '请自由发言。系统会自动识别语音并开始对话。',
+    ko: '자유롭게 말씀해주세요.\n자동으로 음성을 인식하여 대화를 시작합니다.',
+    en: 'Speak freely.\nVoice will be automatically recognized\nto start the conversation.',
+    ja: '自由に話してください。\n自動的に音声を認識して会話を始めます。',
+    zh: '请自由发言。\n系统会自动识别语音并开始对话。',
   },
   startConversation: {
     ko: '대화 시작하기',
@@ -456,6 +451,12 @@ export const voiceChatDescriptions: VoiceChatDescriptions = {
     en: 'Microphone permission is required on Android',
     ja: 'Androidではマイクの権限を許可する必要があります',
     zh: '在Android上需要麦克风权限',
+  },
+  voiceChatTitle: {
+    ko: '{name}과\n음성으로 대화해보세요',
+    en: 'Voice chat with\n{name}',
+    ja: '{name}と\n音声で会話してみましょう',
+    zh: '与{name}\n进行语音对话',
   },
 };
 

@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { translate, translateVoiceChat } from '../utils/translations'
+import { useAudio } from '../contexts/AudioContext'
+import Navigation from '../components/Navigation'
 
 // 파일 상단에 타입 정의 추가
 interface SpeechRecognitionEvent {
@@ -124,6 +126,7 @@ export default function VoiceChatPage() {
   const conversationActiveRef = useRef(conversationActive)
   const permissionGrantedRef = useRef(permissionGranted)
   const notAllowedErrorCount = useRef(0)
+  const restartTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 음성 감지 설정
   const SILENCE_THRESHOLD = 15 // 묵음 임계값
@@ -823,69 +826,24 @@ export default function VoiceChatPage() {
 
   // restartRecognition 함수 수정
   const restartRecognition = () => {
-    console.log('재시작: Speech Recognition 재설정 시도');
-    console.log('현재 상태 - conversationActive:', conversationActiveRef.current, 'isPaused:', isPaused, 'isProcessing:', isProcessing);
-    
-    if (!conversationActiveRef.current) {
-      console.log('대화가 활성화되지 않아 재시작하지 않음');
-      return;
+    // 이미 실행 중인 타이머가 있으면 취소
+    if (restartTimerRef.current) {
+      clearTimeout(restartTimerRef.current);
     }
     
-    // iOS에서 not-allowed 오류가 3회 이상 발생한 경우 재시작 중단
-    if (isIOS() && notAllowedErrorCount.current >= 3) {
-      console.log('iOS에서 not-allowed 오류가 3회 이상 발생하여 재시작을 중단합니다.');
-      setErrorMessage('마이크 접근 권한 문제가 지속됩니다. 페이지를 새로고침하고 다시 시도해주세요.');
-      return;
-    }
-    
-    // 상태 업데이트를 먼저 수행
-    setIsPaused(false);
-    
-    // 약간의 지연 후 실제 재시작 수행 (상태 업데이트가 반영되도록)
-    setTimeout(() => {
+    // 새 타이머 설정
+    restartTimerRef.current = setTimeout(() => {
       try {
-        console.log('재시작 타임아웃 실행됨');
-        
-        // 모바일 기기에서 재시작 시 추가 처리
-        if (isMobile()) {
-          if (isIOS()) {
-            console.log('iOS에서 음성 인식 재시작 시도');
-            // iOS에서는 오디오 컨텍스트 재개 시도
-            if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-              try {
-                audioContextRef.current.resume();
-              } catch (err) {
-                console.error('iOS에서 AudioContext 재개 실패:', err);
-              }
-            } else if (isAndroid()) {
-              console.log('안드로이드에서 음성 인식 재시작 시도');
-              // 안드로이드에서는 오디오 컨텍스트 활성화 시도
-              if (audioContextRef.current) {
-                try {
-                  unlockAudioContext(audioContextRef.current);
-                } catch (err) {
-                  console.error('안드로이드에서 AudioContext 활성화 실패:', err);
-                }
-              }
-            }
-          }
-        }
-        
-        // 기존 인스턴스가 있으면 정리
+        // 기존 인스턴스 정리
         if (recognitionRef.current) {
           try {
             recognitionRef.current.stop();
-            recognitionRef.current.onend = () => {};
-            recognitionRef.current.onresult = () => {};
-            recognitionRef.current.onerror = () => {};
-            recognitionRef.current = null;
-            console.log('기존 recognition 인스턴스 정리됨');
-          } catch (err) {
-            console.log('기존 recognition 인스턴스 정리 중 오류:', err);
+          } catch (stopError) {
+            console.warn('기존 인스턴스 중지 중 오류:', stopError);
           }
+          recognitionRef.current = null;
         }
         
-        // 새 인스턴스 생성 및 시작
         const recognition = setupSpeechRecognition();
         if (recognition) {
           console.log('새 recognition 인스턴스 생성됨, 시작 시도...');
@@ -904,44 +862,21 @@ export default function VoiceChatPage() {
 
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
-      {/* 헤더 */}
-      <header className={`fixed top-0 left-0 right-0 z-50 border-b ${
-        isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="flex items-center justify-between py-4">
-            <Link 
-              href="/chat" 
-              className={`p-2 rounded-full ${
-                isDarkMode 
-                  ? 'hover:bg-gray-700 text-white' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              } flex items-center gap-2`}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
-            </Link>
-            <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${
-                isDarkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-gray-100 text-gray-900'
-              }`}
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* 네비게이션 */}
+      <div className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <Navigation language={language} />
+      </div>
 
       {/* 메인 컨텐츠 */}
-      <main className="flex-1 max-w-5xl mx-auto w-full mt-20 p-8">
+      <main className="flex-1 max-w-5xl mx-auto w-full mt-24 p-8">
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)]">
           <div className="w-32 h-32 relative rounded-full overflow-hidden mb-8 shadow-xl">
             <Image
               src="/profile.png"
               alt={translate('name', language)}
-              layout="fill"
-              className="object-cover"
+              fill
+              sizes="(max-width: 768px) 128px, 128px"
+              className="object-cover object-top"
             />
           </div>
 
@@ -974,16 +909,16 @@ export default function VoiceChatPage() {
 
           {/* 상태 메시지 */}
           <div className={`text-center max-w-md mx-auto ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            <h2 className="text-3xl font-bold mb-4">
+            <h2 className="text-3xl font-bold mb-4 whitespace-pre-line">
               {errorMessage 
                 ? translate('error', language) || "오류가 발생했습니다"
                 : isListening 
                   ? isTalking 
                     ? translateVoiceChat('recognizingVoice', language) || "음성을 인식하고 있습니다..."
                     : translateVoiceChat('pleaseSpeak', language) || "말씀해 주세요"
-                : translate('voiceChatTitle', language).replace('{name}', `${translate('name', language)}${translate('cloneTitle', language)}`)}
+                : translateVoiceChat('voiceChatTitle', language).replace('{name}', `${translate('name', language)}${translate('cloneTitle', language)}`)}
             </h2>
-            <p className={`text-lg ${errorMessage ? 'text-red-500 font-medium' : 'opacity-75'}`}>
+            <p className={`text-lg ${errorMessage ? 'text-red-500 font-medium' : 'opacity-75'} whitespace-pre-line`}>
               {errorMessage 
                 ? errorMessage
                 : isListening 
@@ -996,22 +931,39 @@ export default function VoiceChatPage() {
             </p>
           </div>
 
-          {/* 대화 시작/종료 버튼 */}
-          <motion.button
-            onClick={isListening ? stopListening : startListening}
-            className={`mt-12 px-8 py-4 rounded-full text-white font-medium
-              ${isListening 
-                ? 'bg-red-500 hover:bg-red-600' 
-                : isDarkMode 
-                  ? 'bg-blue-600 hover:bg-blue-700' 
-                  : 'bg-blue-500 hover:bg-blue-600'
-              } transform transition-all duration-200 hover:scale-105 shadow-lg`}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isListening ? translateVoiceChat('endConversation', language) || '대화 종료하기' : translateVoiceChat('startConversation', language) || '대화 시작하기'}
-          </motion.button>
+          {/* 대화 시작/종료 버튼과 채팅으로 돌아가기 버튼 */}
+          <div className="mt-12 flex items-center gap-4">
+            <Link href="/chat">
+              <motion.button
+                className={`px-6 py-4 rounded-full font-medium border-2 
+                  ${isDarkMode 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-800' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                  } transform transition-all duration-200 hover:scale-105`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {translate('backToChat', language) || "채팅으로 돌아가기"}
+              </motion.button>
+            </Link>
+            
+            <motion.button
+              onClick={isListening ? stopListening : startListening}
+              className={`px-8 py-4 rounded-full text-white font-medium
+                ${isListening 
+                  ? 'bg-red-500 hover:bg-red-600' 
+                  : isDarkMode 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-blue-500 hover:bg-blue-600'
+                } transform transition-all duration-200 hover:scale-105 shadow-lg`}
+            >
+              {isListening 
+                ? translateVoiceChat('endConversation', language) || "대화 종료하기"
+                : translateVoiceChat('startConversation', language) || "대화 시작하기"}
+            </motion.button>
+          </div>
         </div>
       </main>
     </div>
   )
-} 
+}

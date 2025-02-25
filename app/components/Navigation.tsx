@@ -98,26 +98,46 @@ export default function Navigation({ language }: NavigationProps) {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.nav
-            className="md:hidden bg-white dark:bg-gray-900 fixed top-[72px] left-0 right-0 z-40 shadow-md"
+            className="md:hidden bg-white dark:bg-gray-800 fixed top-[72px] left-0 right-0 z-40 shadow-lg border-b border-gray-200 dark:border-gray-700"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex flex-col">
-              <Link href="/#profile" className="block p-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight">
+              <Link 
+                href="/#profile" 
+                className="block py-5 px-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-lg"
+                onClick={toggleMenu}
+              >
                 {translate('profile', language)}
               </Link>
-              <Link href="/#smart-options" className="block p-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight">
+              <Link 
+                href="/#smart-options" 
+                className="block py-5 px-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-lg"
+                onClick={toggleMenu}
+              >
                 {translate('smartOptions', language)}
               </Link>
-              <Link href="/#history" className="block p-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight">
+              <Link 
+                href="/#history" 
+                className="block py-5 px-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-lg"
+                onClick={toggleMenu}
+              >
                 {translate('history', language)}
               </Link>
-              <Link href="/#values" className="block p-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight">
+              <Link 
+                href="/#values" 
+                className="block py-5 px-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-lg"
+                onClick={toggleMenu}
+              >
                 {translate('values', language)}
               </Link>
-              <Link href="/#community" className="block p-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight">
+              <Link 
+                href="/#community" 
+                className="block py-5 px-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 transition duration-300 font-mono tracking-tight hover:bg-gray-50 dark:hover:bg-gray-700 text-lg"
+                onClick={toggleMenu}
+              >
                 {translate('activities', language)}
               </Link>
             </div>
