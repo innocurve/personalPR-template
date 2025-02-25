@@ -13,11 +13,13 @@ export interface Message {
 interface ChatInputProps {
   onSendMessage: (message: string) => void
   placeholder?: string
+  isDarkMode?: boolean
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
   placeholder = '메시지를 입력하세요...',
+  isDarkMode,
 }) => {
   const [message, setMessage] = useState('')
   const [isRecording, setIsRecording] = useState(false)

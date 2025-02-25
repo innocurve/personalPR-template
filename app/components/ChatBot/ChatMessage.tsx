@@ -13,9 +13,10 @@ const CACHE_EXPIRY = 60 * 60 * 1000
 
 interface ChatMessageProps {
   message: Message
+  isDarkMode?: boolean
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
