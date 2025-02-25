@@ -322,10 +322,10 @@ export const translations: TranslationDictionary = {
     zh: '请输入电子邮件',
   },
   greetingScript: {
-    ko: '',
-    en: '',
-    ja: '',
-    zh: ''
+    ko: '안녕하세요!\n저는 이노카드 템플릿용으로 특별히 제작된 이노입니다.\n\n오늘 여러분께 인사드리게 되어 정말 기쁩니다.\n이 영상은 저희의 인사 영상 예시 자료로,\n이노카드 템플릿이 어떻게 여러분의 메시지를 멋지게\n전달할 수 있는지 보여드리기 위해 준비되었습니다.\n\n함께 새로운 경험을 시작해 보시길 바랍니다.\n감사합니다.',
+    en: 'nice to meet you!\nI am Inno, specially created for the InoCard template.\n\nI’m delighted to greet you today.\nThis video serves as a sample for our greeting video,\ndemonstrating how the InoCard template\ncan beautifully convey your message.\n\nI hope you’ll join us in experiencing something new.\nThank you!',
+    ja: 'こんにちは！\n私はイノカードのテンプレート用に特別に作られたイノです\n\n今日\n皆さんにご挨拶できることをとても嬉しく思います。\nこの動画は、イノカードのテンプレートがどのようにあなたのメッセージを美しく伝えることができるかを示すための挨拶動画のサンプルです。\n\nぜひ、新しい体験を一緒に始めてみましょう。\nありがとうございます',
+    zh: '你好！\n我是为 InnoCard 模板特别制作的 Ino。\n\n今天很高兴能向大家问好。\n这段视频是我们的问候视频示例，\n展示 InnoCard 模板如何优雅地传达您的信息。\n\n希望您能与我们一起开启新的体验。\n谢谢！'
   },
   affiliations_1: {
     ko: '이노커브',
