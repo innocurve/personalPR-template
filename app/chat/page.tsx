@@ -33,6 +33,31 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [pdfContent, setPdfContent] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+   // CSS 스타일 추가
+   const thinkingDotsStyle = `
+   @keyframes blink {
+     0% { opacity: .2; }
+     20% { opacity: 1; }
+     100% { opacity: .2; }
+   }
+   .thinking-dots {
+     display: flex;
+     align-items: center;
+     gap: 2px;
+   }
+   .thinking-dots span {
+     animation-name: blink;
+     animation-duration: 1.4s;
+     animation-iteration-count: infinite;
+     animation-fill-mode: both;
+     font-size: 40px;
+     line-height: 20px;
+   }
+   .thinking-dots span:nth-child(2) { animation-delay: .2s; }
+   .thinking-dots span:nth-child(3) { animation-delay: .4s; }
+ `;
 
   // localStorage에서 메시지 불러오기
   useEffect(() => {
@@ -84,6 +109,7 @@ export default function ChatPage() {
     }
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
+    setIsLoading(true);
 
     try {
       const response = await fetch('/api/chat', {
@@ -124,6 +150,9 @@ export default function ChatPage() {
         id: crypto.randomUUID()
       };
       setMessages(prev => [...prev, errorMessage])
+    }
+    finally {
+      setIsLoading(false);
     }
   }
 
@@ -221,6 +250,7 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+      <style>{thinkingDotsStyle}</style>
       <div className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <Navigation language={language} />
       </div>
@@ -282,6 +312,17 @@ export default function ChatPage() {
             {messages.map((message, index) => (
               <ChatMessage key={getMessageKey(message, index)} message={message} />
             ))}
+             {isLoading && (
+              <div className="flex justify-start items-start">
+                <div className="rounded-2xl px-4 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                  <div className="thinking-dots">
+                    <span>·</span>
+                    <span>·</span>
+                    <span>·</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         </div>

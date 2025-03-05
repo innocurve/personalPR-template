@@ -636,13 +636,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isDarkMode }) => {
   const buttonState = getButtonState()
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div
-        className={`max-w-[80%] rounded-lg px-4 py-2 ${
+        className={`max-w-[80%] ${
           isUser
-            ? 'bg-blue-500 text-white'
-            : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-        }`}
+          ? 'bg-blue-500 text-white rounded-l-xl rounded-tr-xl'
+          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-r-xl rounded-tl-xl'
+      } px-4 py-3 shadow-md`}
       >
         <div className="flex items-start gap-2">
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
