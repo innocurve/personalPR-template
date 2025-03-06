@@ -327,9 +327,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative">
+    <form onSubmit={handleSubmit} className="relative w-full">
       <div
-        className={`flex items-center rounded-lg border p-2 ${
+        className={`flex items-center rounded-lg border p-1.5 ${
           isDarkMode
             ? 'bg-gray-800 border-gray-700 text-white'
             : 'bg-white border-gray-300 text-gray-900'
@@ -340,17 +340,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={getPlaceholder()}
-          className={`flex-grow px-3 py-2 outline-none bg-transparent ${
+          className={`flex-grow px-2 py-1.5 outline-none bg-transparent min-w-0 ${
             isDarkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'
           }`}
           disabled={isRecording || isLocalProcessing}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             type="button"
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isLocalProcessing}
-            className={`p-2 rounded-full transition-all duration-300 ${
+            className={`p-1.5 rounded-full transition-all duration-300 ${
               isRecording 
                 ? 'bg-red-100 dark:bg-red-900 text-red-500 ring-2 ring-red-500' 
                 : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 hover:scale-110'
@@ -365,16 +365,16 @@ const ChatInput: React.FC<ChatInputProps> = ({
           >
             {isLocalProcessing ? (
               <div className="relative">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap">
                   변환 중...
                 </span>
               </div>
             ) : isRecording ? (
               <div className="relative">
-                <MicOff className="w-5 h-5 text-red-500" />
+                <MicOff className="w-4 h-4 text-red-500" />
                 <div
-                  className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse"
+                  className="absolute -bottom-1 -right-1 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
                   style={{
                     transform: `scale(${1 + audioLevel / 100})`,
                     opacity: 0.8,
@@ -382,19 +382,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 />
               </div>
             ) : (
-              <Mic className="w-5 h-5 animate-pulse" />
+              <Mic className="w-4 h-4 animate-pulse" />
             )}
           </button>
           <button
             type="submit"
             disabled={!message.trim() || isLocalProcessing}
-            className={`p-2 rounded-full transition-all duration-300 ${
+            className={`p-1.5 rounded-full transition-all duration-300 ${
               message.trim() && !isLocalProcessing
                 ? 'bg-blue-500 text-white hover:bg-blue-600 hover:scale-110'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
             }`}
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
           </button>
         </div>
       </div>

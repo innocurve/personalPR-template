@@ -9,7 +9,6 @@ interface ShareButtonProps {
 }
 
 export default function ShareButton({ language }: ShareButtonProps) {
-  const [showToast, setShowToast] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -44,8 +43,6 @@ export default function ShareButton({ language }: ShareButtonProps) {
     const url = window.location.href
     try {
       await navigator.clipboard.writeText(url)
-      setShowToast(true)
-      setTimeout(() => setShowToast(false), 2000)
       setShowMenu(false)
     } catch (err) {
       console.error('Error copying to clipboard:', err)
@@ -129,13 +126,6 @@ export default function ShareButton({ language }: ShareButtonProps) {
               기아 카탈로그/가격표 바로가기
             </span>
           </button>
-        </div>
-      )}
-      
-      {/* 토스트 메시지 */}
-      {showToast && (
-        <div className="fixed bottom-24 right-8 z-50 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
-          {translate('linkCopied', language)}
         </div>
       )}
     </>
