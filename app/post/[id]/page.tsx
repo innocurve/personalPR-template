@@ -58,8 +58,8 @@ export default function PostDetail() {
       </div>
       <Navigation language={language} />
 
-      <main className="max-w-4xl mx-auto p-5 pt-24">
-        <article className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+      <main className="max-w-4xl mx-auto p-5 pt-24 relative z-10">
+        <article className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative z-10">
           <div className="relative h-[200px] sm:h-[300px] md:h-[400px] w-full">
             {post.images ? (
               <Swiper
